@@ -9,8 +9,8 @@ import { dirname, join } from "node:path";
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "public", "icons");
 mkdirSync(OUT, { recursive: true });
 
-const BRAND = [99, 86, 248]; // indigo-violet
-const GOLD = [240, 198, 90];
+const BRAND = [34, 160, 110]; // DEMO green
+const GOLD = [235, 140, 55]; // DEMO orange (spotlight mark)
 
 const crcTable = Array.from({ length: 256 }, (_, n) => {
   let c = n;

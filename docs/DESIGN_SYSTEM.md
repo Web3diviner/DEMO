@@ -7,8 +7,9 @@ runtime. Mobile-first; all breakpoints designed from the start.
 ## Design principles
 
 - **Dark-first.** The product is a full-bleed video feed; the canvas is near-black so content leads.
-- **One brand accent, two semantic accents.** Restraint reads as premium (Linear/Stripe). Brand =
-  indigo-violet (trust). `live` = battles/likes. `gold` = earnings/verification.
+- **Green primary + orange accent.** DEMO's brand is a refined, professional **green** (`brand`,
+  primary actions/identity) paired with an energetic **orange** (`live` — battles, likes, "hot").
+  `gold` (warm amber) marks earnings/verification and complements the pair. Restraint reads premium.
 - **Motion communicates, never decorates.** Short durations, purposeful easing, and a hard
   `prefers-reduced-motion` override. Every transition reinforces orientation.
 - **Touch-first ergonomics.** ≥44px targets (Fitts's Law), thumb-reachable nav, safe-area aware.

@@ -25,20 +25,20 @@
     --line: oklch(1 0 0 / 0.1);
     --line-strong: oklch(1 0 0 / 0.18);
 
-    /* — Brand — */
-    --brand: oklch(0.62 0.2 280); /* indigo-violet, trustworthy/premium */
-    --brand-hover: oklch(0.67 0.2 280);
+    /* — Brand — green (primary) + orange (accent). Refined, professional tones. — */
+    --brand: oklch(0.6 0.13 158); /* DEMO green — primary actions, identity */
+    --brand-hover: oklch(0.65 0.13 158);
     --brand-fg: oklch(0.99 0 0); /* text on brand */
 
     /* — Semantic accents — */
-    --live: oklch(0.65 0.24 12); /* battles, likes, "hot" */
-    --gold: oklch(0.82 0.15 85); /* earnings, verified badge */
-    --success: oklch(0.74 0.18 150);
-    --warning: oklch(0.82 0.16 80);
-    --danger: oklch(0.63 0.23 25);
+    --live: oklch(0.7 0.17 52); /* DEMO orange — battles, likes, "hot", energy */
+    --gold: oklch(0.81 0.13 80); /* earnings, verified badge (warm, complements brand) */
+    --success: oklch(0.74 0.16 150); /* positive states (distinct lighter green) */
+    --warning: oklch(0.84 0.14 92); /* caution (yellow, distinct from orange) */
+    --danger: oklch(0.62 0.22 25); /* destructive / errors */
 
     /* — Focus — */
-    --ring: oklch(0.72 0.18 280);
+    --ring: oklch(0.68 0.14 158);
 
     /* — Radii — */
     --radius-xs: 0.375rem;
