@@ -243,6 +243,21 @@ export const api = {
       return request(`/v1/ambassador`, ambassadorSchema, { signal });
     },
   },
+  push: {
+    /** Register a Web Push subscription so the backend can deliver notifications. */
+    subscribe(subscription: PushSubscriptionJSON): Promise<{ ok: boolean }> {
+      return request(`/v1/push/subscribe`, z.object({ ok: z.boolean() }), {
+        method: "POST",
+        body: { subscription },
+      });
+    },
+    unsubscribe(endpoint: string): Promise<{ ok: boolean }> {
+      return request(`/v1/push/unsubscribe`, z.object({ ok: z.boolean() }), {
+        method: "POST",
+        body: { endpoint },
+      });
+    },
+  },
   dms: {
     threads(signal?: AbortSignal): Promise<DmThread[]> {
       return request(`/v1/dms`, z.array(dmThreadSchema), { signal });

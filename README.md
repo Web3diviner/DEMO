@@ -36,6 +36,8 @@ This repo is the **frontend foundation** (contract-first; no backend required to
   results; public `/u/[handle]` Talent Hub
 - ✅ **Ambassador** (§6.10): referral code/share, verified-activity reward framing, tier progress,
   campus leaderboard
+- ✅ **Web push + Settings**: permission/subscription flow (VAPID), Settings screen with
+  push + data-saver toggles (SW already handles `push`/`notificationclick`)
 - ✅ Route groups + RBAC mirror for `(marketing) (app) (admin) (enterprise)`
 - ✅ Security headers / CSP, typed+validated API client, analytics event contract, feature flags
 - ✅ Tests (Vitest unit + component, Playwright e2e) and CI

@@ -289,6 +289,48 @@ paths:
               schema:
                 type: array
                 items: { $ref: "#/components/schemas/Hashtag" }
+  /v1/push/subscribe:
+    post:
+      summary: Register a Web Push subscription for the signed-in user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subscription]
+              properties:
+                subscription: { type: object, description: PushSubscription JSON (endpoint + keys) }
+      responses:
+        "200":
+          description: Acknowledged
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties: { ok: { type: boolean } }
+  /v1/push/unsubscribe:
+    post:
+      summary: Remove a Web Push subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [endpoint]
+              properties:
+                endpoint: { type: string }
+      responses:
+        "200":
+          description: Acknowledged
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties: { ok: { type: boolean } }
   /v1/ambassador:
     get:
       summary: Ambassador dashboard (PRD §6.10) — referral tools + gamified rewards

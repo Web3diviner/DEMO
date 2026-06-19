@@ -54,5 +54,5 @@ Legend: ✅ confirmed by PRD · 🟡 PRD says TBD / needs a value · 🔵 deferr
 - ✅ Basic **DMs** (MVP scope, §11). Push notifications still pending.
 - ✅ Moderation review queue (launch blocker, §10.3). Ledger + fraud dashboards still to attach.
 - ✅ Hashtags/search (MVP scope, §6.1) + public `/u/[handle]` profiles.
-- ☐ Ambassador onboarding (MVP scope, §6.10).
-- ☐ Web push wiring (SW handler exists; needs subscription + backend).
+- ✅ Ambassador onboarding (MVP scope, §6.10).
+- ✅ Web push subscription flow + Settings (needs a VAPID key + backend send to go live).

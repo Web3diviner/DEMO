@@ -356,6 +356,13 @@ export async function handleMock(
     return TRENDS;
   }
 
+  if (
+    (route === "/v1/push/subscribe" || route === "/v1/push/unsubscribe") &&
+    opts.method === "POST"
+  ) {
+    return { ok: true };
+  }
+
   if (route === "/v1/ambassador" && (opts.method ?? "GET") === "GET") {
     return {
       code: "ADA-UNILAG",

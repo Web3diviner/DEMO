@@ -56,9 +56,13 @@ export function TalentHub({ handle }: { handle: string }) {
             {creator.campus && <p className="text-subtle text-xs">{creator.campus}</p>}
           </div>
         </div>
-        <Button variant="ghost" size="icon" aria-label="Settings">
+        <Link
+          href="/settings"
+          aria-label="Settings"
+          className="text-muted hover:text-fg grid h-11 w-11 place-items-center rounded-full"
+        >
           <Settings className="h-5 w-5" />
-        </Button>
+        </Link>
       </header>
 
       <div className="border-line mt-5 flex items-center justify-around rounded-lg border py-3">
