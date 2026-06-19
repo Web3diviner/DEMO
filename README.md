@@ -27,6 +27,8 @@ This repo is the **frontend foundation** (contract-first; no backend required to
   (server-truth spend), escrow prize pool, settled results — `/battles` + `/battles/[id]`
 - ✅ **Charts** (PRD §6.4): campus + **Rising Stars** (growth-velocity ranked), rank deltas,
   verified weighting
+- ✅ **One-tap tipping/support** (§6.1/§7.2): Credit spend → creator-earnings split, server-truth
+  balance; **For You ↔ Following** feed switch
 - ✅ Route groups + RBAC mirror for `(marketing) (app) (admin) (enterprise)`
 - ✅ Security headers / CSP, typed+validated API client, analytics event contract, feature flags
 - ✅ Tests (Vitest unit + component, Playwright e2e) and CI

@@ -159,6 +159,19 @@ export const commentPageSchema = z.object({
   total: z.number().int(),
 });
 
+/** Which feed to retrieve (PRD §6.1: algorithmic For You + Following/Support). */
+export const feedKindSchema = z.enum(["fyp", "following"]);
+
+/**
+ * Result of a one-tap tip (PRD §6.1/§7.2). The Credits are consumed and split into platform fee +
+ * creator earnings server-side; the client only ever sees the confirmed wallet back.
+ */
+export const tipResultSchema = z.object({
+  clipId: z.string(),
+  creditsSpent: moneySchema, // CREDITS
+  wallet: walletSchema, // server-truth balance after the spend
+});
+
 /* ── Battles (PRD §6.5) ───────────────────────────────────────────────────
    Time-boxed contests; fans vote with Credits (vote cost → escrow + platform
    fee). State machine Draft→Open→Voting→Settled→Archived. Verified users carry
@@ -248,6 +261,8 @@ export type TopUpIntent = z.infer<typeof topUpIntentSchema>;
 export type TopUpStatus = z.infer<typeof topUpStatusSchema>;
 export type Comment = z.infer<typeof commentSchema>;
 export type CommentPage = z.infer<typeof commentPageSchema>;
+export type FeedKind = z.infer<typeof feedKindSchema>;
+export type TipResult = z.infer<typeof tipResultSchema>;
 
 /** Engagement actions that flow through the optimistic queue. */
 export type EngagementAction =

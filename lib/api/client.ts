@@ -13,7 +13,10 @@ import {
   battleSchema,
   voteResultSchema,
   chartSchema,
+  tipResultSchema,
   type EngagementAction,
+  type FeedKind,
+  type TipResult,
   type FeedPage,
   type EngagementResult,
   type UploadTicket,
@@ -107,9 +110,20 @@ async function request<T>(
 
 export const api = {
   feed: {
-    page(cursor: string | null, signal?: AbortSignal): Promise<FeedPage> {
-      const qs = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
-      return request(`/v1/feed${qs}`, feedPageSchema, { signal });
+    page(cursor: string | null, kind: FeedKind = "fyp", signal?: AbortSignal): Promise<FeedPage> {
+      const params = new URLSearchParams({ feed: kind });
+      if (cursor) params.set("cursor", cursor);
+      return request(`/v1/feed?${params.toString()}`, feedPageSchema, { signal });
+    },
+  },
+  tips: {
+    /** Send a one-tap tip (Credits → platform fee + creator earnings). Spend is server-truth. */
+    send(clipId: string, credits: number): Promise<TipResult> {
+      return request(`/v1/clips/${encodeURIComponent(clipId)}/tip`, tipResultSchema, {
+        method: "POST",
+        body: { credits },
+        idempotencyKey: `tip:${clipId}:${credits}:${Date.now()}`,
+      });
     },
   },
   engagement: {

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Heart, MessageCircle, Share2 } from "lucide-react";
+import { Heart, MessageCircle, Share2, Coins } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -20,18 +20,23 @@ type Props = {
   onLike: () => void;
   onComment: () => void;
   onShare: () => void;
+  onSupport: () => void;
 };
 
 function Action({
   label,
   count,
+  caption,
   active,
   activeClass,
   onClick,
   children,
 }: {
   label: string;
-  count: number;
+  /** Numeric count below the icon; omit for actions without one (e.g. Tip). */
+  count?: number;
+  /** Static text below the icon when there's no count. */
+  caption?: string;
   active?: boolean;
   activeClass?: string;
   onClick: () => void;
@@ -42,7 +47,7 @@ function Action({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      aria-label={`${label} (${count})`}
+      aria-label={count != null ? `${label} (${count})` : label}
       className={cn(
         "flex flex-col items-center gap-1 text-white",
         "transition-transform duration-[var(--dur-1)] ease-[var(--ease-spring)] active:scale-90",
@@ -58,7 +63,7 @@ function Action({
         {children}
       </span>
       <span className="text-xs font-semibold tabular-nums drop-shadow">
-        {compact.format(count)}
+        {count != null ? compact.format(count) : caption}
       </span>
     </button>
   );
@@ -72,6 +77,7 @@ export function EngagementBar({
   onLike,
   onComment,
   onShare,
+  onSupport,
 }: Props) {
   return (
     <div className="flex flex-col items-center gap-5">
@@ -86,6 +92,14 @@ export function EngagementBar({
       </Action>
       <Action label="Comment" count={commentCount} onClick={onComment}>
         <MessageCircle className="h-6 w-6" />
+      </Action>
+      <Action
+        label="Support this creator"
+        caption="Tip"
+        activeClass="bg-gold/20"
+        onClick={onSupport}
+      >
+        <Coins className="text-gold h-6 w-6" />
       </Action>
       <Action label="Share" count={shareCount} onClick={onShare}>
         <Share2 className="h-6 w-6" />

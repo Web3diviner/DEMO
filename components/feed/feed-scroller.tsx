@@ -4,7 +4,7 @@ import * as React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Gauge, Wifi } from "lucide-react";
 import { api } from "@/lib/api/client";
-import type { Clip } from "@/lib/api/types";
+import type { Clip, FeedKind } from "@/lib/api/types";
 import { useDataPolicy } from "@/lib/hooks/use-data-policy";
 import { getEngagementQueue } from "@/lib/queue/shared";
 import { track } from "@/lib/analytics";
@@ -23,6 +23,7 @@ import { FeedItem } from "./feed-item";
 
 export function FeedScroller() {
   const { policy, manualDataSaver, setManualDataSaver, connection } = useDataPolicy();
+  const [feedKind, setFeedKind] = React.useState<FeedKind>("fyp");
   const [activeIndex, setActiveIndex] = React.useState(0);
   // Optimistic overrides keyed by clipId, layered over server data.
   const [likeOverrides, setLikeOverrides] = React.useState<
@@ -33,8 +34,8 @@ export function FeedScroller() {
   const queue = getEngagementQueue();
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } = useInfiniteQuery({
-    queryKey: ["feed"],
-    queryFn: ({ pageParam, signal }) => api.feed.page(pageParam, signal),
+    queryKey: ["feed", feedKind],
+    queryFn: ({ pageParam, signal }) => api.feed.page(pageParam, feedKind, signal),
     initialPageParam: null as string | null,
     getNextPageParam: (last) => last.nextCursor,
     staleTime: 60_000,
@@ -98,6 +99,34 @@ export function FeedScroller() {
 
   return (
     <div className="relative">
+      {/* For You / Following switch (PRD §6.1) — top-center, minimal over the immersive feed. */}
+      <div
+        role="tablist"
+        aria-label="Feed"
+        className="absolute top-3 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 text-sm font-semibold"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
+        {(["fyp", "following"] as const).map((kind) => (
+          <button
+            key={kind}
+            role="tab"
+            aria-selected={feedKind === kind}
+            onClick={() => {
+              if (feedKind === kind) return;
+              setFeedKind(kind);
+              setActiveIndex(0);
+              track({ type: "feed_switch", kind });
+            }}
+            className={cn(
+              "rounded-pill px-3 py-1 backdrop-blur-md transition-colors",
+              feedKind === kind ? "bg-white/90 text-black" : "text-white/70",
+            )}
+          >
+            {kind === "fyp" ? "For You" : "Following"}
+          </button>
+        ))}
+      </div>
+
       {/* Data-saver control — always visible, honest about the user's data. */}
       <div
         className="absolute top-3 right-3 z-30 flex items-center"
@@ -121,6 +150,16 @@ export function FeedScroller() {
           {connection.saveData && <span className="sr-only">(browser Save-Data on)</span>}
         </button>
       </div>
+
+      {clips.length === 0 && (
+        <div className="h-dscreen grid place-items-center bg-black px-8 text-center text-white/70">
+          <p className="text-sm">
+            {feedKind === "following"
+              ? "Follow some creators and their clips show up here."
+              : "No clips yet — check back soon."}
+          </p>
+        </div>
+      )}
 
       <div
         ref={containerRef}

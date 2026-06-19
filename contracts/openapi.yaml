@@ -12,12 +12,16 @@ servers:
 paths:
   /v1/feed:
     get:
-      summary: Personalized talent feed (cursor-paginated)
+      summary: Personalized talent feed (cursor-paginated). For You vs Following (PRD §6.1)
       parameters:
         - name: cursor
           in: query
           required: false
           schema: { type: string, nullable: true }
+        - name: feed
+          in: query
+          required: false
+          schema: { type: string, enum: [fyp, following], default: fyp }
       responses:
         "200":
           description: A page of clips
@@ -233,6 +237,33 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/VoteResult" }
+  /v1/clips/{clipId}/tip:
+    post:
+      summary: One-tap tip (PRD §6.1/§7.2) — Credits → platform fee + creator earnings
+      parameters:
+        - name: clipId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [credits]
+              properties:
+                credits: { type: integer, description: Credits to send }
+      responses:
+        "200":
+          description: Confirmed wallet after the spend
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TipResult" }
   /v1/charts/{board}:
     get:
       summary: Leaderboard for a board (PRD §6.4); Rising ranks growth velocity
@@ -408,6 +439,13 @@ components:
       required: [battle, wallet]
       properties:
         battle: { $ref: "#/components/schemas/Battle" }
+        wallet: { $ref: "#/components/schemas/Wallet" }
+    TipResult:
+      type: object
+      required: [clipId, creditsSpent, wallet]
+      properties:
+        clipId: { type: string }
+        creditsSpent: { $ref: "#/components/schemas/Money" }
         wallet: { $ref: "#/components/schemas/Wallet" }
     ChartEntry:
       type: object

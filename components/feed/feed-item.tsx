@@ -7,6 +7,7 @@ import type { DataPolicy } from "@/lib/connection";
 import { HlsPlayer } from "./hls-player";
 import { EngagementBar } from "./engagement-bar";
 import { CommentSheet } from "./comment-sheet";
+import { TipSheet } from "./tip-sheet";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils/cn";
 
@@ -28,6 +29,7 @@ type Props = {
 export function FeedItem({ clip, active, preload, policy, position, onLike }: Props) {
   const dwellStart = React.useRef<number | null>(null);
   const [commentsOpen, setCommentsOpen] = React.useState(false);
+  const [tipOpen, setTipOpen] = React.useState(false);
 
   // Impression + dwell instrumentation feeds the recommendation store.
   React.useEffect(() => {
@@ -84,6 +86,7 @@ export function FeedItem({ clip, active, preload, policy, position, onLike }: Pr
           shareCount={clip.stats.shares}
           onLike={() => onLike(clip)}
           onComment={() => setCommentsOpen(true)}
+          onSupport={() => setTipOpen(true)}
           onShare={() => {
             track({ type: "engagement", action: "share", clipId: clip.id });
             void navigator.share?.({ text: clip.caption }).catch(() => {});
@@ -111,6 +114,12 @@ export function FeedItem({ clip, active, preload, policy, position, onLike }: Pr
       </div>
 
       <CommentSheet clipId={clip.id} open={commentsOpen} onClose={() => setCommentsOpen(false)} />
+      <TipSheet
+        clipId={clip.id}
+        creatorHandle={clip.creator.handle}
+        open={tipOpen}
+        onClose={() => setTipOpen(false)}
+      />
     </article>
   );
 }

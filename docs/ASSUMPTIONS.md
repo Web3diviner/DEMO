@@ -47,9 +47,10 @@ Legend: ✅ confirmed by PRD · 🟡 PRD says TBD / needs a value · 🔵 deferr
   asset NFTs, crypto on-ramp, multi-campus, advanced two-tower ML ranking, enterprise scouting
   dashboard (Phase 3). Route groups/stubs exist; full builds gated by phase + feature flags.
 
-## Frontend follow-ups (not blocked)
+## Frontend follow-ups
 
-- Following/Support feed toggle on the feed (FYP ↔ Following).
-- One-tap **support/tip** action in the feed engagement rail (Credits spend, §6.1).
-- Basic **DMs** and **push** (MVP scope, §11).
-- Hashtags/search, ambassador onboarding (MVP scope).
+- ✅ Following ↔ For You feed toggle (§6.1).
+- ✅ One-tap support/tip in the feed rail (Credits spend → earnings split, §6.1/§7.2).
+- ☐ Basic **DMs** and **push** (MVP scope, §11).
+- ☐ Hashtags/search; ambassador onboarding (MVP scope).
+- ☐ Moderation console (launch blocker, §10.3) — admin route group exists; build the review queue.

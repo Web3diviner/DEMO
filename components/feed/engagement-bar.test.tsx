@@ -12,6 +12,7 @@ function setup(overrides: Partial<React.ComponentProps<typeof EngagementBar>> = 
     onLike: vi.fn(),
     onComment: vi.fn(),
     onShare: vi.fn(),
+    onSupport: vi.fn(),
     ...overrides,
   };
   render(<EngagementBar {...props} />);
@@ -42,5 +43,14 @@ describe("EngagementBar", () => {
     const props = setup();
     await user.click(screen.getByRole("button", { name: /Like/ }));
     expect(props.onLike).toHaveBeenCalledOnce();
+  });
+
+  it("offers a Support action that reports tip intent", async () => {
+    const user = userEvent.setup();
+    const props = setup();
+    const support = screen.getByRole("button", { name: /support this creator/i });
+    expect(support).toBeInTheDocument();
+    await user.click(support);
+    expect(props.onSupport).toHaveBeenCalledOnce();
   });
 });

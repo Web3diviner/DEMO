@@ -221,8 +221,14 @@ export async function handleMock(
   const [route, query] = path.split("?");
 
   if (route === "/v1/feed" && (opts.method ?? "GET") === "GET") {
-    const cursor = new URLSearchParams(query).get("cursor");
-    return buildPage(cursor);
+    const params = new URLSearchParams(query);
+    const cursor = params.get("cursor");
+    const page = buildPage(cursor);
+    // Following feed = only creators the viewer follows; mock approximates with verified creators.
+    if (params.get("feed") === "following") {
+      page.items = page.items.filter((c) => c.creator.verified);
+    }
+    return page;
   }
 
   if (route === "/v1/engagement" && opts.method === "POST") {
@@ -355,6 +361,16 @@ export async function handleMock(
   if (/^\/v1\/charts\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
     const board = route.split("/")[3];
     return chartFor(board);
+  }
+
+  if (/^\/v1\/clips\/[^/]+\/tip$/.test(route) && opts.method === "POST") {
+    const clipId = route.split("/")[3];
+    const { credits } = opts.body as { credits: number };
+    if (wallet.credits.minor < credits) throw new Error("Not enough Credits");
+    // Spend Credits server-side; the split into platform fee + creator earnings happens in the
+    // ledger (not surfaced here). Return the confirmed wallet only.
+    wallet.credits = { ...wallet.credits, minor: wallet.credits.minor - credits };
+    return { clipId, creditsSpent: { currency: "CREDITS" as const, minor: credits }, wallet };
   }
 
   throw new Error(`Mock: unhandled route ${path}`);
