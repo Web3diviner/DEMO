@@ -203,6 +203,33 @@ export const dmThreadDetailSchema = z.object({
   messages: z.array(dmMessageSchema),
 });
 
+/* ── Moderation (PRD §10.3 — launch-blocking review queue) ──────────────────── */
+export const moderationItemSchema = z.object({
+  id: z.string(),
+  /** What is under review. */
+  kind: z.enum(["clip", "comment", "user"]),
+  /** How it reached the queue: automated first pass or a user report. */
+  source: z.enum(["ai", "report"]),
+  /** Human-readable reason, e.g. "Nudity (0.82)" or "Harassment". */
+  reason: z.string(),
+  severity: z.enum(["low", "medium", "high"]),
+  /** AI confidence 0..1 when source = ai. */
+  confidence: z.number().nullable(),
+  subject: z.object({ handle: z.string(), displayName: z.string() }),
+  /** Preview payload: a poster for media, text for comments. */
+  preview: z.object({
+    posterUrl: z.string().url().nullable(),
+    text: z.string().nullable(),
+  }),
+  reportCount: z.number().int(),
+  createdAt: z.string(),
+});
+
+export const moderationActionResultSchema = z.object({
+  id: z.string(),
+  status: z.enum(["approved", "removed", "banned", "escalated"]),
+});
+
 /* ── Battles (PRD §6.5) ───────────────────────────────────────────────────
    Time-boxed contests; fans vote with Credits (vote cost → escrow + platform
    fee). State machine Draft→Open→Voting→Settled→Archived. Verified users carry
@@ -298,6 +325,9 @@ export type DmParticipant = z.infer<typeof dmParticipantSchema>;
 export type DmMessage = z.infer<typeof dmMessageSchema>;
 export type DmThread = z.infer<typeof dmThreadSchema>;
 export type DmThreadDetail = z.infer<typeof dmThreadDetailSchema>;
+export type ModerationItem = z.infer<typeof moderationItemSchema>;
+export type ModerationAction = "approve" | "remove" | "ban" | "escalate";
+export type ModerationActionResult = z.infer<typeof moderationActionResultSchema>;
 
 /** Engagement actions that flow through the optimistic queue. */
 export type EngagementAction =

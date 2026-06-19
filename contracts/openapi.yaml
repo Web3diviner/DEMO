@@ -264,6 +264,49 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/TipResult" }
+  /v1/moderation/queue:
+    get:
+      summary: Staff review queue (PRD §10.3) — automated flags + user reports
+      responses:
+        "200":
+          description: Items awaiting review
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ModerationItem" }
+  /v1/moderation/{id}/action:
+    post:
+      summary: Resolve a queue item (logged + re-checked server-side)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [approve, remove, ban, escalate] }
+      responses:
+        "200":
+          description: Resolution
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, status]
+                properties:
+                  id: { type: string }
+                  status: { type: string, enum: [approved, removed, banned, escalated] }
   /v1/dms:
     get:
       summary: Direct-message threads for the signed-in user (PRD §11)
@@ -534,6 +577,31 @@ components:
         messages:
           type: array
           items: { $ref: "#/components/schemas/DmMessage" }
+    ModerationItem:
+      type: object
+      required:
+        [id, kind, source, reason, severity, confidence, subject, preview, reportCount, createdAt]
+      properties:
+        id: { type: string }
+        kind: { type: string, enum: [clip, comment, user] }
+        source: { type: string, enum: [ai, report] }
+        reason: { type: string }
+        severity: { type: string, enum: [low, medium, high] }
+        confidence: { type: number, nullable: true, description: AI confidence 0..1 }
+        subject:
+          type: object
+          required: [handle, displayName]
+          properties:
+            handle: { type: string }
+            displayName: { type: string }
+        preview:
+          type: object
+          required: [posterUrl, text]
+          properties:
+            posterUrl: { type: string, format: uri, nullable: true }
+            text: { type: string, nullable: true }
+        reportCount: { type: integer }
+        createdAt: { type: string, format: date-time }
     ChartEntry:
       type: object
       required: [rank, delta, creator, score, risingPct]

@@ -17,12 +17,17 @@ import {
   dmThreadSchema,
   dmThreadDetailSchema,
   dmMessageSchema,
+  moderationItemSchema,
+  moderationActionResultSchema,
   type EngagementAction,
   type FeedKind,
   type TipResult,
   type DmThread,
   type DmThreadDetail,
   type DmMessage,
+  type ModerationItem,
+  type ModerationAction,
+  type ModerationActionResult,
   type FeedPage,
   type EngagementResult,
   type UploadTicket,
@@ -232,6 +237,23 @@ export const api = {
         body: { body, localId },
         idempotencyKey: localId,
       });
+    },
+  },
+  moderation: {
+    /** Staff-only review queue (server enforces staff RBAC; this is the console UI). */
+    queue(signal?: AbortSignal): Promise<ModerationItem[]> {
+      return request(`/v1/moderation/queue`, z.array(moderationItemSchema), { signal });
+    },
+    act(id: string, action: ModerationAction): Promise<ModerationActionResult> {
+      return request(
+        `/v1/moderation/${encodeURIComponent(id)}/action`,
+        moderationActionResultSchema,
+        {
+          method: "POST",
+          body: { action },
+          idempotencyKey: `mod:${id}:${action}`,
+        },
+      );
     },
   },
 };

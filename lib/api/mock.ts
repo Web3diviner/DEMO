@@ -254,6 +254,71 @@ function iso(secondsFromNow: number) {
   return new Date(Date.now() + secondsFromNow * 1000).toISOString();
 }
 
+// ── Moderation queue (PRD §10.3) ─────────────────────────────────────────────
+type MockModItem = {
+  id: string;
+  kind: "clip" | "comment" | "user";
+  source: "ai" | "report";
+  reason: string;
+  severity: "low" | "medium" | "high";
+  confidence: number | null;
+  subject: { handle: string; displayName: string };
+  preview: { posterUrl: string | null; text: string | null };
+  reportCount: number;
+  createdAt: string;
+};
+
+const modQueue: MockModItem[] = [
+  {
+    id: "mod_1",
+    kind: "clip",
+    source: "ai",
+    reason: "Possible nudity",
+    severity: "high",
+    confidence: 0.82,
+    subject: { handle: "tunde.flow", displayName: "Tunde" },
+    preview: { posterUrl: poster(3), text: null },
+    reportCount: 0,
+    createdAt: iso(-1800),
+  },
+  {
+    id: "mod_2",
+    kind: "comment",
+    source: "report",
+    reason: "Harassment",
+    severity: "medium",
+    confidence: null,
+    subject: { handle: "anon_user", displayName: "Anon" },
+    preview: { posterUrl: null, text: "You have no talent, just give up already." },
+    reportCount: 4,
+    createdAt: iso(-5400),
+  },
+  {
+    id: "mod_3",
+    kind: "clip",
+    source: "ai",
+    reason: "Copyright audio match",
+    severity: "low",
+    confidence: 0.64,
+    subject: { handle: "zainab.moves", displayName: "Zainab" },
+    preview: { posterUrl: poster(6), text: null },
+    reportCount: 1,
+    createdAt: iso(-9000),
+  },
+  {
+    id: "mod_4",
+    kind: "user",
+    source: "report",
+    reason: "Spam / fake engagement",
+    severity: "medium",
+    confidence: null,
+    subject: { handle: "promo_bot22", displayName: "Promo" },
+    preview: { posterUrl: null, text: "Account reported for mass-following and spam DMs." },
+    reportCount: 7,
+    createdAt: iso(-12000),
+  },
+];
+
 export async function handleMock(
   path: string,
   opts: { method?: string; body?: unknown },
@@ -404,6 +469,24 @@ export async function handleMock(
   if (/^\/v1\/charts\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
     const board = route.split("/")[3];
     return chartFor(board);
+  }
+
+  if (route === "/v1/moderation/queue" && (opts.method ?? "GET") === "GET") {
+    return modQueue;
+  }
+
+  if (/^\/v1\/moderation\/[^/]+\/action$/.test(route) && opts.method === "POST") {
+    const id = route.split("/")[3];
+    const { action } = opts.body as { action: string };
+    const idx = modQueue.findIndex((m) => m.id === id);
+    if (idx >= 0) modQueue.splice(idx, 1); // resolved → leaves the queue
+    const statusMap: Record<string, string> = {
+      approve: "approved",
+      remove: "removed",
+      ban: "banned",
+      escalate: "escalated",
+    };
+    return { id, status: statusMap[action] ?? "approved" };
   }
 
   if (route === "/v1/dms" && (opts.method ?? "GET") === "GET") {
