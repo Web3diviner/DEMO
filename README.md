@@ -29,6 +29,7 @@ This repo is the **frontend foundation** (contract-first; no backend required to
   verified weighting
 - ✅ **One-tap tipping/support** (§6.1/§7.2): Credit spend → creator-earnings split, server-truth
   balance; **For You ↔ Following** feed switch
+- ✅ **Direct messages** (§11): conversation list + thread view with optimistic send
 - ✅ Route groups + RBAC mirror for `(marketing) (app) (admin) (enterprise)`
 - ✅ Security headers / CSP, typed+validated API client, analytics event contract, feature flags
 - ✅ Tests (Vitest unit + component, Playwright e2e) and CI

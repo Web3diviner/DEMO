@@ -264,6 +264,59 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/TipResult" }
+  /v1/dms:
+    get:
+      summary: Direct-message threads for the signed-in user (PRD §11)
+      responses:
+        "200":
+          description: Threads
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DmThread" }
+  /v1/dms/{id}:
+    get:
+      summary: A single thread with its messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Thread detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DmThreadDetail" }
+  /v1/dms/{id}/messages:
+    post:
+      summary: Send a message in a thread (idempotent via localId)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body, localId]
+              properties:
+                body: { type: string }
+                localId: { type: string }
+      responses:
+        "200":
+          description: The created message
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DmMessage" }
   /v1/charts/{board}:
     get:
       summary: Leaderboard for a board (PRD §6.4); Rising ranks growth velocity
@@ -447,6 +500,40 @@ components:
         clipId: { type: string }
         creditsSpent: { $ref: "#/components/schemas/Money" }
         wallet: { $ref: "#/components/schemas/Wallet" }
+    DmParticipant:
+      type: object
+      required: [handle, displayName, verified, avatarUrl]
+      properties:
+        handle: { type: string }
+        displayName: { type: string }
+        verified: { type: boolean }
+        avatarUrl: { type: string, format: uri, nullable: true }
+    DmMessage:
+      type: object
+      required: [id, fromMe, body, createdAt]
+      properties:
+        id: { type: string }
+        fromMe: { type: boolean }
+        body: { type: string }
+        createdAt: { type: string, format: date-time }
+    DmThread:
+      type: object
+      required: [id, participant, lastMessage, lastAt, unread]
+      properties:
+        id: { type: string }
+        participant: { $ref: "#/components/schemas/DmParticipant" }
+        lastMessage: { type: string }
+        lastAt: { type: string, format: date-time }
+        unread: { type: integer }
+    DmThreadDetail:
+      type: object
+      required: [id, participant, messages]
+      properties:
+        id: { type: string }
+        participant: { $ref: "#/components/schemas/DmParticipant" }
+        messages:
+          type: array
+          items: { $ref: "#/components/schemas/DmMessage" }
     ChartEntry:
       type: object
       required: [rank, delta, creator, score, risingPct]

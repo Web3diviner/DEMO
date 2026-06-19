@@ -172,6 +172,37 @@ export const tipResultSchema = z.object({
   wallet: walletSchema, // server-truth balance after the spend
 });
 
+/* ── Direct messages (PRD §11 — basic DMs) ─────────────────────────────────── */
+export const dmParticipantSchema = z.object({
+  handle: z.string(),
+  displayName: z.string(),
+  verified: z.boolean(),
+  avatarUrl: z.string().url().nullable(),
+});
+
+export const dmMessageSchema = z.object({
+  id: z.string(),
+  /** True when the signed-in user sent it. */
+  fromMe: z.boolean(),
+  body: z.string(),
+  createdAt: z.string(),
+});
+
+export const dmThreadSchema = z.object({
+  id: z.string(),
+  participant: dmParticipantSchema,
+  lastMessage: z.string(),
+  lastAt: z.string(),
+  /** Unread count for the signed-in user. */
+  unread: z.number().int(),
+});
+
+export const dmThreadDetailSchema = z.object({
+  id: z.string(),
+  participant: dmParticipantSchema,
+  messages: z.array(dmMessageSchema),
+});
+
 /* ── Battles (PRD §6.5) ───────────────────────────────────────────────────
    Time-boxed contests; fans vote with Credits (vote cost → escrow + platform
    fee). State machine Draft→Open→Voting→Settled→Archived. Verified users carry
@@ -263,6 +294,10 @@ export type Comment = z.infer<typeof commentSchema>;
 export type CommentPage = z.infer<typeof commentPageSchema>;
 export type FeedKind = z.infer<typeof feedKindSchema>;
 export type TipResult = z.infer<typeof tipResultSchema>;
+export type DmParticipant = z.infer<typeof dmParticipantSchema>;
+export type DmMessage = z.infer<typeof dmMessageSchema>;
+export type DmThread = z.infer<typeof dmThreadSchema>;
+export type DmThreadDetail = z.infer<typeof dmThreadDetailSchema>;
 
 /** Engagement actions that flow through the optimistic queue. */
 export type EngagementAction =

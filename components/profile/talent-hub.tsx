@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { BadgeCheck, Play, Settings, Swords } from "lucide-react";
 import { api } from "@/lib/api/client";
@@ -70,9 +71,12 @@ export function TalentHub({ handle }: { handle: string }) {
 
       <div className="mt-4 flex gap-2">
         <Button block>Follow</Button>
-        <Button block variant="secondary">
+        <Link
+          href="/dms"
+          className="border-line text-fg rounded-pill flex h-11 flex-1 items-center justify-center border font-medium active:scale-[0.98]"
+        >
           Message
-        </Button>
+        </Link>
       </div>
 
       {/* Clip grid */}

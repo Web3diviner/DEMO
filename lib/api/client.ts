@@ -14,9 +14,15 @@ import {
   voteResultSchema,
   chartSchema,
   tipResultSchema,
+  dmThreadSchema,
+  dmThreadDetailSchema,
+  dmMessageSchema,
   type EngagementAction,
   type FeedKind,
   type TipResult,
+  type DmThread,
+  type DmThreadDetail,
+  type DmMessage,
   type FeedPage,
   type EngagementResult,
   type UploadTicket,
@@ -211,6 +217,21 @@ export const api = {
     get(board: ChartBoard, scope: string | null, signal?: AbortSignal): Promise<Chart> {
       const qs = scope ? `?scope=${encodeURIComponent(scope)}` : "";
       return request(`/v1/charts/${board}${qs}`, chartSchema, { signal });
+    },
+  },
+  dms: {
+    threads(signal?: AbortSignal): Promise<DmThread[]> {
+      return request(`/v1/dms`, z.array(dmThreadSchema), { signal });
+    },
+    thread(id: string, signal?: AbortSignal): Promise<DmThreadDetail> {
+      return request(`/v1/dms/${encodeURIComponent(id)}`, dmThreadDetailSchema, { signal });
+    },
+    send(id: string, body: string, localId: string): Promise<DmMessage> {
+      return request(`/v1/dms/${encodeURIComponent(id)}/messages`, dmMessageSchema, {
+        method: "POST",
+        body: { body, localId },
+        idempotencyKey: localId,
+      });
     },
   },
 };

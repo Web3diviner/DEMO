@@ -211,6 +211,49 @@ function chartFor(board: string) {
   return { board, scope: board === "campus" ? "UNILAG" : null, periodLabel: "This week", entries };
 }
 
+// ── Direct messages (PRD §11) ────────────────────────────────────────────────
+type MockDm = { id: string; fromMe: boolean; body: string; createdAt: string };
+const dmThreads = new Map<
+  string,
+  {
+    id: string;
+    participant: { handle: string; displayName: string; verified: boolean; avatarUrl: null };
+    messages: MockDm[];
+  }
+>([
+  [
+    "dm_ada",
+    {
+      id: "dm_ada",
+      participant: { handle: "ada.beats", displayName: "Ada", verified: true, avatarUrl: null },
+      messages: [
+        { id: "m1", fromMe: false, body: "Yo! Loved your last clip 🔥", createdAt: iso(-3600 * 5) },
+        { id: "m2", fromMe: true, body: "Thank you! Means a lot 🙏", createdAt: iso(-3600 * 4) },
+        {
+          id: "m3",
+          fromMe: false,
+          body: "Wanna collab for the next battle?",
+          createdAt: iso(-3600 * 2),
+        },
+      ],
+    },
+  ],
+  [
+    "dm_tunde",
+    {
+      id: "dm_tunde",
+      participant: { handle: "tunde.flow", displayName: "Tunde", verified: false, avatarUrl: null },
+      messages: [
+        { id: "m1", fromMe: false, body: "Sent you the beat, lmk", createdAt: iso(-3600 * 26) },
+      ],
+    },
+  ],
+]);
+
+function iso(secondsFromNow: number) {
+  return new Date(Date.now() + secondsFromNow * 1000).toISOString();
+}
+
 export async function handleMock(
   path: string,
   opts: { method?: string; body?: unknown },
@@ -361,6 +404,36 @@ export async function handleMock(
   if (/^\/v1\/charts\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
     const board = route.split("/")[3];
     return chartFor(board);
+  }
+
+  if (route === "/v1/dms" && (opts.method ?? "GET") === "GET") {
+    return [...dmThreads.values()].map((t) => {
+      const last = t.messages[t.messages.length - 1];
+      return {
+        id: t.id,
+        participant: t.participant,
+        lastMessage: last?.body ?? "",
+        lastAt: last?.createdAt ?? iso(0),
+        unread: t.id === "dm_ada" ? 1 : 0,
+      };
+    });
+  }
+
+  if (/^\/v1\/dms\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
+    const id = route.split("/")[3];
+    const t = dmThreads.get(id);
+    if (!t) throw new Error("Thread not found");
+    return { id: t.id, participant: t.participant, messages: t.messages };
+  }
+
+  if (/^\/v1\/dms\/[^/]+\/messages$/.test(route) && opts.method === "POST") {
+    const id = route.split("/")[3];
+    const t = dmThreads.get(id);
+    if (!t) throw new Error("Thread not found");
+    const { body } = opts.body as { body: string };
+    const msg: MockDm = { id: `m_${Date.now()}`, fromMe: true, body, createdAt: iso(0) };
+    t.messages.push(msg);
+    return msg;
   }
 
   if (/^\/v1\/clips\/[^/]+\/tip$/.test(route) && opts.method === "POST") {
