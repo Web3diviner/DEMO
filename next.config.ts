@@ -12,6 +12,9 @@ import type { NextConfig } from "next";
  */
 const MEDIA_CDN = process.env.NEXT_PUBLIC_MEDIA_ORIGIN ?? "https://cdn.demo.example";
 const API_ORIGIN = process.env.NEXT_PUBLIC_API_ORIGIN ?? "https://api.demo.example";
+// Direct-to-storage resumable upload (tus) endpoint origin. Must be allowed in connect-src or the
+// browser blocks the upload. In local dev with the mock this is the public tus demo server.
+const UPLOAD_ORIGIN = process.env.NEXT_PUBLIC_UPLOAD_ORIGIN ?? "https://tusd.tusdemo.net";
 
 const csp = [
   `default-src 'self'`,
@@ -25,7 +28,7 @@ const csp = [
   `style-src 'self' 'unsafe-inline'`,
   `script-src 'self' 'unsafe-inline' https://js.paystack.co`,
   `frame-src https://checkout.paystack.com https://*.paystack.co`,
-  `connect-src 'self' ${API_ORIGIN} ${MEDIA_CDN} https://api.paystack.co`,
+  `connect-src 'self' ${API_ORIGIN} ${MEDIA_CDN} ${UPLOAD_ORIGIN} https://api.paystack.co`,
   `worker-src 'self'`,
   `manifest-src 'self'`,
   `upgrade-insecure-requests`,

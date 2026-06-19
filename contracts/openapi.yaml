@@ -47,17 +47,65 @@ paths:
   /v1/uploads/ticket:
     post:
       summary: Issue a short-lived signed tus ticket for direct-to-storage video upload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sizeBytes, mimeType]
+              properties:
+                sizeBytes: { type: integer }
+                mimeType: { type: string }
       responses:
         "200":
           description: Signed upload ticket
           content:
             application/json:
+              schema: { $ref: "#/components/schemas/UploadTicket" }
+  /v1/clips:
+    post:
+      summary: Publish clip metadata + claim an uploaded asset
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [assetId, caption]
+              properties:
+                assetId: { type: string }
+                caption: { type: string }
+      responses:
+        "200":
+          description: Publish accepted (asset transcoding to HLS)
+          content:
+            application/json:
               schema:
                 type: object
-                required: [endpoint, expiresAt]
+                required: [clipId, status]
                 properties:
-                  endpoint: { type: string, format: uri }
-                  expiresAt: { type: string, format: date-time }
+                  clipId: { type: string }
+                  status: { type: string, enum: [processing, published] }
+  /v1/profiles/{handle}:
+    get:
+      summary: Creator profile / Talent Hub
+      parameters:
+        - name: handle
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Profile" }
   /v1/wallet:
     get:
       summary: Fan Credits + creator earnings (server-truth balances)
@@ -166,3 +214,33 @@ components:
         clipId: { type: string }
         liked: { type: boolean }
         likeCount: { type: integer }
+    UploadTicket:
+      type: object
+      required: [endpoint, assetId, headers, expiresAt]
+      properties:
+        endpoint:
+          { type: string, format: uri, description: tus creation endpoint at the storage provider }
+        assetId: { type: string }
+        headers:
+          type: object
+          additionalProperties: { type: string }
+        expiresAt: { type: string, format: date-time }
+    Profile:
+      type: object
+      required: [creator, bio, followerCount, followingCount, totalLikes, clips]
+      properties:
+        creator: { $ref: "#/components/schemas/Creator" }
+        bio: { type: string }
+        followerCount: { type: integer }
+        followingCount: { type: integer }
+        totalLikes: { type: integer }
+        clips:
+          type: array
+          items:
+            type: object
+            required: [id, posterUrl, plays, battleId]
+            properties:
+              id: { type: string }
+              posterUrl: { type: string, format: uri }
+              plays: { type: integer }
+              battleId: { type: string, nullable: true }

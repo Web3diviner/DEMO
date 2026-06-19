@@ -16,6 +16,9 @@ This repo is the **frontend foundation** (contract-first; no backend required to
 - ✅ Money model in integer minor units (Credits / NGN / USD) — never floats, never client balances
 - ✅ Vertical **HLS feed** slice, end-to-end against a mock: adaptive bitrate, lazy players,
   data-saver discipline, optimistic engagement queue
+- ✅ **Resumable upload** (tus): direct-to-storage signed ticket, data-aware chunking, pause/resume,
+  resume-after-reload, Wi-Fi-only pre-compression hook
+- ✅ **Talent Hub** profile (stats + clip grid) and **creator verification** onboarding ($1)
 - ✅ Route groups + RBAC mirror for `(marketing) (app) (admin) (enterprise)`
 - ✅ Security headers / CSP, typed+validated API client, analytics event contract, feature flags
 - ✅ Tests (Vitest unit + component, Playwright e2e) and CI

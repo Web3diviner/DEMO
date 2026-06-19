@@ -2,9 +2,15 @@ import { z } from "zod";
 import {
   feedPageSchema,
   engagementResultSchema,
+  uploadTicketSchema,
+  publishResultSchema,
+  profileSchema,
   type EngagementAction,
   type FeedPage,
   type EngagementResult,
+  type UploadTicket,
+  type PublishResult,
+  type Profile,
 } from "./types";
 
 /**
@@ -99,6 +105,25 @@ export const api = {
             ? action.localId
             : `${action.kind}:${"clipId" in action ? action.clipId : action.creatorId}:${action.value}`,
       });
+    },
+  },
+  uploads: {
+    /** Request a signed, short-lived ticket to upload a clip directly to storage (tus). */
+    createTicket(input: { sizeBytes: number; mimeType: string }): Promise<UploadTicket> {
+      return request(`/v1/uploads/ticket`, uploadTicketSchema, { method: "POST", body: input });
+    },
+    /** Attach metadata + claim the uploaded asset once the bytes are in. */
+    publish(input: { assetId: string; caption: string }): Promise<PublishResult> {
+      return request(`/v1/clips`, publishResultSchema, {
+        method: "POST",
+        body: input,
+        idempotencyKey: `publish:${input.assetId}`,
+      });
+    },
+  },
+  profiles: {
+    get(handle: string, signal?: AbortSignal): Promise<Profile> {
+      return request(`/v1/profiles/${encodeURIComponent(handle)}`, profileSchema, { signal });
     },
   },
 };

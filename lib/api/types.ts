@@ -69,12 +69,52 @@ export const engagementResultSchema = z.object({
   likeCount: z.number().int(),
 });
 
+/**
+ * A short-lived signed ticket to upload video DIRECTLY to object storage via tus. Video never
+ * transits our API. The endpoint + headers are issued per-upload and expire quickly.
+ */
+export const uploadTicketSchema = z.object({
+  /** tus creation endpoint at the storage provider. */
+  endpoint: z.string().url(),
+  /** Opaque id we use to claim/publish the asset once the upload completes. */
+  assetId: z.string(),
+  /** Extra headers the provider requires (e.g. a signed auth token). */
+  headers: z.record(z.string(), z.string()),
+  expiresAt: z.string(),
+});
+
+/** Result of publishing clip metadata after the bytes finished uploading. */
+export const publishResultSchema = z.object({
+  clipId: z.string(),
+  status: z.enum(["processing", "published"]),
+});
+
+/** Creator profile / Talent Hub. */
+export const profileSchema = z.object({
+  creator: creatorSchema,
+  bio: z.string(),
+  followerCount: z.number().int(),
+  followingCount: z.number().int(),
+  totalLikes: z.number().int(),
+  clips: z.array(
+    z.object({
+      id: z.string(),
+      posterUrl: z.string().url(),
+      plays: z.number().int(),
+      battleId: z.string().nullable(),
+    }),
+  ),
+});
+
 export type Money = z.infer<typeof moneySchema>;
 export type Rendition = z.infer<typeof renditionSchema>;
 export type Creator = z.infer<typeof creatorSchema>;
 export type Clip = z.infer<typeof clipSchema>;
 export type FeedPage = z.infer<typeof feedPageSchema>;
 export type EngagementResult = z.infer<typeof engagementResultSchema>;
+export type UploadTicket = z.infer<typeof uploadTicketSchema>;
+export type PublishResult = z.infer<typeof publishResultSchema>;
+export type Profile = z.infer<typeof profileSchema>;
 
 /** Engagement actions that flow through the optimistic queue. */
 export type EngagementAction =

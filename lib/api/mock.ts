@@ -114,5 +114,44 @@ export async function handleMock(
     return { clipId: action.clipId ?? "", liked: false, likeCount: 0 };
   }
 
+  if (route === "/v1/uploads/ticket" && opts.method === "POST") {
+    const assetId = `asset_${Date.now().toString(36)}`;
+    // In production this is a signed tus endpoint at the storage provider. The mock returns a
+    // tus.io public demo endpoint so the resumable flow can be exercised end-to-end.
+    return {
+      endpoint: "https://tusd.tusdemo.net/files/",
+      assetId,
+      headers: {},
+      expiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
+    };
+  }
+
+  if (route === "/v1/clips" && opts.method === "POST") {
+    const body = opts.body as { assetId: string };
+    return { clipId: `clip_pub_${body.assetId}`, status: "processing" };
+  }
+
+  if (route.startsWith("/v1/profiles/") && (opts.method ?? "GET") === "GET") {
+    const handle = decodeURIComponent(route.replace("/v1/profiles/", ""));
+    const creator = CREATORS.find((c) => c.handle === handle) ?? CREATORS[0];
+    const clips = Array.from({ length: 9 }, (_, k) => {
+      const idx = k * 2;
+      return {
+        id: `clip_${idx}`,
+        posterUrl: poster(idx),
+        plays: 8000 + idx * 211,
+        battleId: idx % 5 === 0 ? `battle_${idx}` : null,
+      };
+    });
+    return {
+      creator: { ...creator, avatarUrl: null },
+      bio: "Campus performer. Booking via DMs. 🎤",
+      followerCount: 12_400,
+      followingCount: 312,
+      totalLikes: 248_900,
+      clips,
+    };
+  }
+
   throw new Error(`Mock: unhandled route ${path}`);
 }
