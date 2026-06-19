@@ -331,6 +331,104 @@ function scoutDetail(handle: string) {
   };
 }
 
+// ── Events (PRD §6.8) ────────────────────────────────────────────────────────
+type MockTicket = {
+  id: string;
+  eventId: string;
+  title: string;
+  startsAt: string;
+  venue: string;
+  code: string;
+  status: "valid" | "used";
+};
+const tickets: MockTicket[] = [];
+
+const EVENTS = [
+  {
+    id: "ev1",
+    title: "Freshers' Night Live",
+    type: "show",
+    venue: "Main Auditorium",
+    campus: "UNILAG",
+    inDays: 3,
+    attendees: 420,
+    price: 250,
+    ci: 0,
+  },
+  {
+    id: "ev2",
+    title: "Campus Rap Cypher Finals",
+    type: "competition",
+    venue: "Student Union Hall",
+    campus: "UI Ibadan",
+    inDays: 7,
+    attendees: 310,
+    price: 150,
+    ci: 1,
+  },
+  {
+    id: "ev3",
+    title: "Sunday Praise Concert",
+    type: "concert",
+    venue: "Chapel of Resurrection",
+    campus: "OAU",
+    inDays: 10,
+    attendees: 540,
+    price: 0,
+    ci: 2,
+  },
+  {
+    id: "ev4",
+    title: "DEMO Talent Awards 2026",
+    type: "awards",
+    venue: "Eko Hotel",
+    campus: "Lagos",
+    inDays: 21,
+    attendees: 900,
+    price: 1200,
+    ci: 0,
+  },
+  {
+    id: "ev5",
+    title: "Afrobeats Campus Festival",
+    type: "festival",
+    venue: "Sports Complex",
+    campus: "ABU Zaria",
+    inDays: 28,
+    attendees: 1500,
+    price: 600,
+    ci: 1,
+  },
+];
+
+function eventItem(e: (typeof EVENTS)[number]) {
+  return {
+    id: e.id,
+    title: e.title,
+    type: e.type,
+    coverUrl: poster(e.ci + 2),
+    startsAt: iso(e.inDays * 86400),
+    venue: e.venue,
+    campus: e.campus,
+    attendees: e.attendees,
+    price: { currency: "CREDITS" as const, minor: e.price },
+    viewer: { hasTicket: tickets.some((t) => t.eventId === e.id) },
+  };
+}
+
+function eventDetail(e: (typeof EVENTS)[number]) {
+  return {
+    ...eventItem(e),
+    description:
+      "A DEMO-powered campus event. Reserve your spot now — your ticket lives in your pass wallet with a scannable code at the door.",
+    lineup: CREATORS.map((c) => ({
+      handle: c.handle,
+      displayName: c.displayName,
+      verified: c.verified,
+    })),
+  };
+}
+
 // ── Fan Clubs / premium (PRD §6.6) ───────────────────────────────────────────
 type MockMembership = {
   id: string;
@@ -756,6 +854,44 @@ export async function handleMock(
   if (/^\/v1\/charts\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
     const board = route.split("/")[3];
     return chartFor(board);
+  }
+
+  if (route === "/v1/events" && (opts.method ?? "GET") === "GET") {
+    const type = new URLSearchParams(query).get("type");
+    return EVENTS.filter((e) => !type || e.type === type).map(eventItem);
+  }
+
+  if (/^\/v1\/events\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
+    const id = route.split("/")[3];
+    const e = EVENTS.find((x) => x.id === id) ?? EVENTS[0];
+    return eventDetail(e);
+  }
+
+  if (/^\/v1\/events\/[^/]+\/tickets$/.test(route) && opts.method === "POST") {
+    const id = route.split("/")[3];
+    const e = EVENTS.find((x) => x.id === id);
+    if (!e) throw new Error("Event not found");
+    const existing = tickets.find((t) => t.eventId === id);
+    if (existing) return { ticket: existing, wallet };
+    if (e.price > 0) {
+      if (wallet.credits.minor < e.price) throw new Error("Not enough Credits");
+      wallet.credits = { ...wallet.credits, minor: wallet.credits.minor - e.price };
+    }
+    const ticket: MockTicket = {
+      id: `tk_${Date.now().toString(36)}`,
+      eventId: id,
+      title: e.title,
+      startsAt: iso(e.inDays * 86400),
+      venue: e.venue,
+      code: `DEMO-${id.toUpperCase()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+      status: "valid",
+    };
+    tickets.unshift(ticket);
+    return { ticket, wallet };
+  }
+
+  if (route === "/v1/tickets" && (opts.method ?? "GET") === "GET") {
+    return tickets;
   }
 
   if (/^\/v1\/creators\/[^/]+\/fanclub$/.test(route) && (opts.method ?? "GET") === "GET") {

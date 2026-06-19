@@ -44,6 +44,8 @@ This repo is the **frontend foundation** (contract-first; no backend required to
   checkout (server-truth; digital delivers on confirm, physical collects fulfilment) + feature flags
 - ✅ **Fan Clubs / premium** (§6.6, flag-gated): tiered recurring memberships (pending→active),
   entitlement-gated members-only content (expiring-badge model), membership management
+- ✅ **Events** (§6.8): browse by type, event detail + lineup, Credit-funded ticketing (free RSVP or
+  priced), QR pass wallet (NFT tickets are a later phase)
 - ✅ Route groups + RBAC mirror for `(marketing) (app) (admin) (enterprise)`
 - ✅ Security headers / CSP, typed+validated API client, analytics event contract, feature flags
 - ✅ Tests (Vitest unit + component, Playwright e2e) and CI

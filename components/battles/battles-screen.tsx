@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, CalendarDays } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { BattleState } from "@/lib/api/types";
 import { BattleCard } from "./battle-card";
@@ -27,12 +27,20 @@ export function BattlesScreen() {
     <main id="main" className="mx-auto max-w-md px-4 pt-6 pb-28">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Battles</h1>
-        <Link
-          href="/charts"
-          className="text-muted hover:text-fg flex items-center gap-1.5 text-sm font-medium"
-        >
-          <BarChart3 className="h-4 w-4" aria-hidden /> Charts
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/events"
+            className="text-muted hover:text-fg flex items-center gap-1.5 text-sm font-medium"
+          >
+            <CalendarDays className="h-4 w-4" aria-hidden /> Events
+          </Link>
+          <Link
+            href="/charts"
+            className="text-muted hover:text-fg flex items-center gap-1.5 text-sm font-medium"
+          >
+            <BarChart3 className="h-4 w-4" aria-hidden /> Charts
+          </Link>
+        </div>
       </div>
       <p className="text-muted mt-1 text-sm">
         Back your favourite with Credits. Verified votes count more.

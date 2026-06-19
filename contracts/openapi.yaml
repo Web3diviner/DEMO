@@ -340,6 +340,59 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Ambassador" }
+  /v1/events:
+    get:
+      summary: Upcoming events (PRD §6.8), optionally by type
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema: { type: string, enum: [show, concert, competition, awards, festival] }
+      responses:
+        "200":
+          description: Events
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Event" }
+  /v1/events/{id}:
+    get:
+      summary: Event detail (description + lineup)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Event detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EventDetail" }
+  /v1/events/{id}/tickets:
+    post:
+      summary: Reserve a ticket (Credits spend if priced; free events RSVP)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Ticket + server-truth wallet
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TicketResult" }
+  /v1/tickets:
+    get:
+      summary: The signed-in user's ticket wallet (passes)
+      responses:
+        "200":
+          description: Tickets
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Ticket" }
   /v1/creators/{handle}/fanclub:
     get:
       summary: A creator's Fan Club — tiers, membership state, locked preview (PRD §6.6)
@@ -858,6 +911,56 @@ components:
               id: { type: string }
               posterUrl: { type: string, format: uri }
               plays: { type: integer }
+    Event:
+      type: object
+      required: [id, title, type, coverUrl, startsAt, venue, campus, attendees, price, viewer]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        type: { type: string, enum: [show, concert, competition, awards, festival] }
+        coverUrl: { type: string, format: uri }
+        startsAt: { type: string, format: date-time }
+        venue: { type: string }
+        campus: { type: string }
+        attendees: { type: integer }
+        price: { $ref: "#/components/schemas/Money" }
+        viewer:
+          type: object
+          required: [hasTicket]
+          properties: { hasTicket: { type: boolean } }
+    EventDetail:
+      allOf:
+        - { $ref: "#/components/schemas/Event" }
+        - type: object
+          required: [description, lineup]
+          properties:
+            description: { type: string }
+            lineup:
+              type: array
+              items:
+                type: object
+                required: [handle, displayName, verified]
+                properties:
+                  handle: { type: string }
+                  displayName: { type: string }
+                  verified: { type: boolean }
+    Ticket:
+      type: object
+      required: [id, eventId, title, startsAt, venue, code, status]
+      properties:
+        id: { type: string }
+        eventId: { type: string }
+        title: { type: string }
+        startsAt: { type: string, format: date-time }
+        venue: { type: string }
+        code: { type: string }
+        status: { type: string, enum: [valid, used] }
+    TicketResult:
+      type: object
+      required: [ticket, wallet]
+      properties:
+        ticket: { $ref: "#/components/schemas/Ticket" }
+        wallet: { $ref: "#/components/schemas/Wallet" }
     FanClubTier:
       type: object
       required: [id, name, price, perks, badge]

@@ -31,6 +31,10 @@ import {
   membershipSchema,
   subscribeIntentSchema,
   subscriptionStatusSchema,
+  eventSchema,
+  eventDetailSchema,
+  ticketSchema,
+  ticketResultSchema,
   type EngagementAction,
   type FeedKind,
   type TipResult,
@@ -53,6 +57,11 @@ import {
   type Membership,
   type SubscribeIntent,
   type SubscriptionStatus,
+  type EventItem,
+  type EventDetail,
+  type EventType,
+  type Ticket,
+  type TicketResult,
   type FeedPage,
   type EngagementResult,
   type UploadTicket,
@@ -303,6 +312,27 @@ export const api = {
         body: input,
         idempotencyKey: `order:${input.listingId}:${Date.now()}`,
       });
+    },
+  },
+  events: {
+    /** Upcoming events (PRD §6.8), optionally by type. */
+    list(type: EventType | "all", signal?: AbortSignal): Promise<EventItem[]> {
+      const qs = type === "all" ? "" : `?type=${type}`;
+      return request(`/v1/events${qs}`, z.array(eventSchema), { signal });
+    },
+    get(id: string, signal?: AbortSignal): Promise<EventDetail> {
+      return request(`/v1/events/${encodeURIComponent(id)}`, eventDetailSchema, { signal });
+    },
+    /** Reserve a ticket. Spends Credits if priced (server-truth); free events just RSVP. */
+    getTicket(id: string): Promise<TicketResult> {
+      return request(`/v1/events/${encodeURIComponent(id)}/tickets`, ticketResultSchema, {
+        method: "POST",
+        idempotencyKey: `ticket:${id}`,
+      });
+    },
+    /** The signed-in user's ticket wallet (passes). */
+    tickets(signal?: AbortSignal): Promise<Ticket[]> {
+      return request(`/v1/tickets`, z.array(ticketSchema), { signal });
     },
   },
   premium: {

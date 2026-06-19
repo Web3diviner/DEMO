@@ -252,6 +252,47 @@ export const dmThreadDetailSchema = z.object({
   messages: z.array(dmMessageSchema),
 });
 
+/* ── Events (PRD §6.8 — real-world ↔ platform bridge) ──────────────────────────
+   Campus shows, concerts, competitions, awards, festivals. Ticketing now;
+   NFT tickets (provenance / anti-fraud / resale-royalty) are a later phase. */
+export const eventTypeSchema = z.enum(["show", "concert", "competition", "awards", "festival"]);
+
+export const eventSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  type: eventTypeSchema,
+  coverUrl: z.string().url(),
+  startsAt: z.string(),
+  venue: z.string(),
+  campus: z.string(),
+  attendees: z.number().int(),
+  /** Ticket price in Credits; minor 0 = free RSVP. */
+  price: moneySchema,
+  viewer: z.object({ hasTicket: z.boolean() }),
+});
+
+export const eventDetailSchema = eventSchema.extend({
+  description: z.string(),
+  lineup: z.array(z.object({ handle: z.string(), displayName: z.string(), verified: z.boolean() })),
+});
+
+export const ticketSchema = z.object({
+  id: z.string(),
+  eventId: z.string(),
+  title: z.string(),
+  startsAt: z.string(),
+  venue: z.string(),
+  /** Opaque code encoded into the QR (signed/rotating in production). */
+  code: z.string(),
+  status: z.enum(["valid", "used"]),
+});
+
+export const ticketResultSchema = z.object({
+  ticket: ticketSchema,
+  /** Server-truth wallet after any Credit spend (free events leave it unchanged). */
+  wallet: walletSchema,
+});
+
 /* ── Fan Clubs / premium subscriptions (PRD §6.6, §7.3, §8.3) ──────────────────
    Tiered recurring memberships (Paystack billing). Access is gated on the
    OFF-CHAIN entitlement; membership is mirrored as an expiring ERC-5643 badge.
@@ -504,6 +545,11 @@ export type Hashtag = z.infer<typeof hashtagSchema>;
 export type SearchClip = z.infer<typeof searchClipSchema>;
 export type SearchResult = z.infer<typeof searchResultSchema>;
 export type Ambassador = z.infer<typeof ambassadorSchema>;
+export type EventType = z.infer<typeof eventTypeSchema>;
+export type EventItem = z.infer<typeof eventSchema>;
+export type EventDetail = z.infer<typeof eventDetailSchema>;
+export type Ticket = z.infer<typeof ticketSchema>;
+export type TicketResult = z.infer<typeof ticketResultSchema>;
 export type FanClubTier = z.infer<typeof fanClubTierSchema>;
 export type FanClub = z.infer<typeof fanClubSchema>;
 export type Membership = z.infer<typeof membershipSchema>;

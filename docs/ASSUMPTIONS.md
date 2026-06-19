@@ -49,8 +49,9 @@ Legend: ✅ confirmed by PRD · 🟡 PRD says TBD / needs a value · 🔵 deferr
   Credit checkout, digital delivery + physical fulfilment). Seller listing-creation is a follow-up.
 - ✅ Fan Clubs / premium subscriptions (§6.6) — built ahead of phase, behind the `premium` flag
   (tiers, recurring billing, entitlement-gated content, expiring-badge model, membership mgmt).
-- 🔵 Events/NFT tickets, transferable asset NFTs, crypto on-ramp, multi-campus, advanced two-tower
-  ML ranking. Gated by phase + flags.
+- ✅ Events (§6.8) — built (browse, ticketing, QR pass wallet). NFT tickets are a later phase.
+- 🔵 NFT tickets / transferable asset NFTs, crypto on-ramp, multi-campus, advanced two-tower ML
+  ranking, on-chain fee settlement. Gated by phase + flags (these are backend/chain-side).
 
 ## Frontend follow-ups
 
