@@ -19,6 +19,8 @@ import {
   dmMessageSchema,
   moderationItemSchema,
   moderationActionResultSchema,
+  searchResultSchema,
+  hashtagSchema,
   type EngagementAction,
   type FeedKind,
   type TipResult,
@@ -28,6 +30,8 @@ import {
   type ModerationItem,
   type ModerationAction,
   type ModerationActionResult,
+  type SearchResult,
+  type Hashtag,
   type FeedPage,
   type EngagementResult,
   type UploadTicket,
@@ -222,6 +226,14 @@ export const api = {
     get(board: ChartBoard, scope: string | null, signal?: AbortSignal): Promise<Chart> {
       const qs = scope ? `?scope=${encodeURIComponent(scope)}` : "";
       return request(`/v1/charts/${board}${qs}`, chartSchema, { signal });
+    },
+  },
+  search: {
+    query(q: string, signal?: AbortSignal): Promise<SearchResult> {
+      return request(`/v1/search?q=${encodeURIComponent(q)}`, searchResultSchema, { signal });
+    },
+    trends(signal?: AbortSignal): Promise<Hashtag[]> {
+      return request(`/v1/trends`, z.array(hashtagSchema), { signal });
     },
   },
   dms: {

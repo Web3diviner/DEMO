@@ -319,6 +319,30 @@ const modQueue: MockModItem[] = [
   },
 ];
 
+// ── Search & trends (PRD §6.1) ───────────────────────────────────────────────
+const TRENDS = [
+  { tag: "freshersweek", posts: 4820 },
+  { tag: "unilagtalent", posts: 3110 },
+  { tag: "afrobeats", posts: 9870 },
+  { tag: "rapbattle", posts: 2640 },
+  { tag: "gospelvibes", posts: 1880 },
+  { tag: "campusgottalent", posts: 1450 },
+];
+
+function searchFor(q: string) {
+  const needle = q.replace(/^#/, "").toLowerCase();
+  const creators = CREATORS.filter(
+    (c) => c.handle.toLowerCase().includes(needle) || c.displayName.toLowerCase().includes(needle),
+  ).map((c) => ({ ...c, avatarUrl: null }));
+  const hashtags = TRENDS.filter((t) => t.tag.includes(needle)).slice(0, 5);
+  const clips = Array.from({ length: 6 }, (_, k) => ({
+    id: `clip_${k * 3}`,
+    posterUrl: poster(k * 3),
+    plays: 8000 + k * 640,
+  }));
+  return { creators, hashtags, clips };
+}
+
 export async function handleMock(
   path: string,
   opts: { method?: string; body?: unknown },
@@ -327,6 +351,15 @@ export async function handleMock(
   await new Promise((r) => setTimeout(r, 180 + Math.random() * 220));
 
   const [route, query] = path.split("?");
+
+  if (route === "/v1/trends" && (opts.method ?? "GET") === "GET") {
+    return TRENDS;
+  }
+
+  if (route === "/v1/search" && (opts.method ?? "GET") === "GET") {
+    const q = new URLSearchParams(query).get("q") ?? "";
+    return searchFor(q);
+  }
 
   if (route === "/v1/feed" && (opts.method ?? "GET") === "GET") {
     const params = new URLSearchParams(query);

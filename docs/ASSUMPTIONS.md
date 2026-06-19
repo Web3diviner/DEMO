@@ -53,5 +53,6 @@ Legend: ✅ confirmed by PRD · 🟡 PRD says TBD / needs a value · 🔵 deferr
 - ✅ One-tap support/tip in the feed rail (Credits spend → earnings split, §6.1/§7.2).
 - ✅ Basic **DMs** (MVP scope, §11). Push notifications still pending.
 - ✅ Moderation review queue (launch blocker, §10.3). Ledger + fraud dashboards still to attach.
-- ☐ Hashtags/search; ambassador onboarding (MVP scope).
+- ✅ Hashtags/search (MVP scope, §6.1) + public `/u/[handle]` profiles.
+- ☐ Ambassador onboarding (MVP scope, §6.10).
 - ☐ Web push wiring (SW handler exists; needs subscription + backend).

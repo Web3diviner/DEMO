@@ -172,6 +172,24 @@ export const tipResultSchema = z.object({
   wallet: walletSchema, // server-truth balance after the spend
 });
 
+/* ── Search & trends (PRD §6.1 — hashtags/search) ──────────────────────────── */
+export const hashtagSchema = z.object({
+  tag: z.string(),
+  posts: z.number().int(),
+});
+
+export const searchClipSchema = z.object({
+  id: z.string(),
+  posterUrl: z.string().url(),
+  plays: z.number().int(),
+});
+
+export const searchResultSchema = z.object({
+  creators: z.array(creatorSchema),
+  hashtags: z.array(hashtagSchema),
+  clips: z.array(searchClipSchema),
+});
+
 /* ── Direct messages (PRD §11 — basic DMs) ─────────────────────────────────── */
 export const dmParticipantSchema = z.object({
   handle: z.string(),
@@ -321,6 +339,9 @@ export type Comment = z.infer<typeof commentSchema>;
 export type CommentPage = z.infer<typeof commentPageSchema>;
 export type FeedKind = z.infer<typeof feedKindSchema>;
 export type TipResult = z.infer<typeof tipResultSchema>;
+export type Hashtag = z.infer<typeof hashtagSchema>;
+export type SearchClip = z.infer<typeof searchClipSchema>;
+export type SearchResult = z.infer<typeof searchResultSchema>;
 export type DmParticipant = z.infer<typeof dmParticipantSchema>;
 export type DmMessage = z.infer<typeof dmMessageSchema>;
 export type DmThread = z.infer<typeof dmThreadSchema>;

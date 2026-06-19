@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Gauge, Wifi, MessageCircle } from "lucide-react";
+import { Gauge, Wifi, MessageCircle, Search } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { Clip, FeedKind } from "@/lib/api/types";
 import { useDataPolicy } from "@/lib/hooks/use-data-policy";
@@ -100,15 +100,26 @@ export function FeedScroller() {
 
   return (
     <div className="relative">
-      {/* Inbox entry — top-left, the familiar messages affordance. */}
-      <Link
-        href="/dms"
-        aria-label="Messages"
-        className="absolute top-3 left-3 z-30 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md"
+      {/* Top-left affordances: messages + search, over the immersive feed. */}
+      <div
+        className="absolute top-3 left-3 z-30 flex items-center gap-2"
         style={{ marginTop: "env(safe-area-inset-top)" }}
       >
-        <MessageCircle className="h-5 w-5" aria-hidden />
-      </Link>
+        <Link
+          href="/dms"
+          aria-label="Messages"
+          className="grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md"
+        >
+          <MessageCircle className="h-5 w-5" aria-hidden />
+        </Link>
+        <Link
+          href="/search"
+          aria-label="Search"
+          className="grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md"
+        >
+          <Search className="h-5 w-5" aria-hidden />
+        </Link>
+      </div>
 
       {/* For You / Following switch (PRD §6.1) — top-center, minimal over the immersive feed. */}
       <div

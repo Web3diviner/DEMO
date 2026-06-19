@@ -32,6 +32,8 @@ This repo is the **frontend foundation** (contract-first; no backend required to
 - ✅ **Direct messages** (§11): conversation list + thread view with optimistic send
 - ✅ **Moderation console** (§10.3, launch blocker): staff review queue — AI flags + reports,
   severity triage, content/user actions (approve/remove/ban/escalate), optimistic resolve
+- ✅ **Search & hashtags** (§6.1): debounced, data-frugal; trending tags, creator/hashtag/clip
+  results; public `/u/[handle]` Talent Hub
 - ✅ Route groups + RBAC mirror for `(marketing) (app) (admin) (enterprise)`
 - ✅ Security headers / CSP, typed+validated API client, analytics event contract, feature flags
 - ✅ Tests (Vitest unit + component, Playwright e2e) and CI

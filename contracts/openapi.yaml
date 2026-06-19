@@ -264,6 +264,31 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/TipResult" }
+  /v1/search:
+    get:
+      summary: Search creators, hashtags, and clips (PRD §6.1)
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Grouped results
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SearchResult" }
+  /v1/trends:
+    get:
+      summary: Trending hashtags
+      responses:
+        "200":
+          description: Trending hashtags
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Hashtag" }
   /v1/moderation/queue:
     get:
       summary: Staff review queue (PRD §10.3) — automated flags + user reports
@@ -577,6 +602,31 @@ components:
         messages:
           type: array
           items: { $ref: "#/components/schemas/DmMessage" }
+    Hashtag:
+      type: object
+      required: [tag, posts]
+      properties:
+        tag: { type: string }
+        posts: { type: integer }
+    SearchResult:
+      type: object
+      required: [creators, hashtags, clips]
+      properties:
+        creators:
+          type: array
+          items: { $ref: "#/components/schemas/Creator" }
+        hashtags:
+          type: array
+          items: { $ref: "#/components/schemas/Hashtag" }
+        clips:
+          type: array
+          items:
+            type: object
+            required: [id, posterUrl, plays]
+            properties:
+              id: { type: string }
+              posterUrl: { type: string, format: uri }
+              plays: { type: integer }
     ModerationItem:
       type: object
       required:
