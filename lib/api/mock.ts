@@ -331,6 +331,60 @@ function scoutDetail(handle: string) {
   };
 }
 
+// ── Fan Clubs / premium (PRD §6.6) ───────────────────────────────────────────
+type MockMembership = {
+  id: string;
+  creatorHandle: string;
+  displayName: string;
+  tierId: string;
+  tierName: string;
+  status: "active" | "expired" | "cancelled";
+  renewsAt: string | null;
+  expiresAt: string;
+};
+const memberships: MockMembership[] = [];
+const pendingSubs = new Map<string, { creatorHandle: string; tierId: string; confirmAt: number }>();
+
+function fanClubTiers() {
+  return [
+    {
+      id: "supporter",
+      name: "Supporter",
+      price: { currency: "NGN" as const, minor: 50_000 }, // ₦500/mo
+      perks: ["Members-only badge", "Early access to new clips", "Community chat"],
+      badge: "Supporter",
+    },
+    {
+      id: "inner",
+      name: "Inner Circle",
+      price: { currency: "NGN" as const, minor: 150_000 }, // ₦1,500/mo
+      perks: ["Everything in Supporter", "Monthly livestream", "Exclusive drops", "Direct Q&A"],
+      badge: "Inner Circle",
+    },
+  ];
+}
+
+function fanClubFor(handle: string) {
+  const creator = CREATORS.find((c) => c.handle === handle) ?? CREATORS[0];
+  const m = memberships.find((x) => x.creatorHandle === creator.handle && x.status === "active");
+  return {
+    creator: {
+      handle: creator.handle,
+      displayName: creator.displayName,
+      verified: creator.verified,
+    },
+    tiers: fanClubTiers(),
+    viewer: m
+      ? { tierId: m.tierId, status: "active" as const, expiresAt: m.expiresAt }
+      : { tierId: null, status: "none" as const, expiresAt: null },
+    lockedPreview: [
+      { id: "p1", title: "Studio session — unreleased" },
+      { id: "p2", title: "Behind the scenes: campus tour" },
+      { id: "p3", title: "Acoustic version (members only)" },
+    ],
+  };
+}
+
 // ── Marketplace (PRD §6.7) ───────────────────────────────────────────────────
 const MARKET = [
   {
@@ -702,6 +756,54 @@ export async function handleMock(
   if (/^\/v1\/charts\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
     const board = route.split("/")[3];
     return chartFor(board);
+  }
+
+  if (/^\/v1\/creators\/[^/]+\/fanclub$/.test(route) && (opts.method ?? "GET") === "GET") {
+    return fanClubFor(decodeURIComponent(route.split("/")[3]));
+  }
+
+  if (route === "/v1/fanclub/subscribe" && opts.method === "POST") {
+    const { creatorHandle, tierId } = opts.body as { creatorHandle: string; tierId: string };
+    const tier = fanClubTiers().find((t) => t.id === tierId) ?? fanClubTiers()[0];
+    const reference = `sub_${Date.now().toString(36)}`;
+    pendingSubs.set(reference, { creatorHandle, tierId, confirmAt: Date.now() + 2500 });
+    return { reference, accessCode: `ac_${reference}`, price: tier.price };
+  }
+
+  if (/^\/v1\/fanclub\/subscribe\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
+    const reference = decodeURIComponent(route.split("/")[4]);
+    const sub = pendingSubs.get(reference);
+    if (!sub) return { reference, status: "failed", membership: null };
+    if (Date.now() < sub.confirmAt) return { reference, status: "pending", membership: null };
+    // First charge "webhook-confirmed": grant the off-chain entitlement (mirror badge mints later).
+    pendingSubs.delete(reference);
+    const creator = CREATORS.find((c) => c.handle === sub.creatorHandle) ?? CREATORS[0];
+    const tier = fanClubTiers().find((t) => t.id === sub.tierId) ?? fanClubTiers()[0];
+    const membership: MockMembership = {
+      id: `mem_${reference}`,
+      creatorHandle: creator.handle,
+      displayName: creator.displayName,
+      tierId: tier.id,
+      tierName: tier.name,
+      status: "active",
+      renewsAt: iso(30 * 86400),
+      expiresAt: iso(30 * 86400),
+    };
+    memberships.unshift(membership);
+    return { reference, status: "active", membership };
+  }
+
+  if (route === "/v1/memberships" && (opts.method ?? "GET") === "GET") {
+    return memberships;
+  }
+
+  if (/^\/v1\/memberships\/[^/]+\/cancel$/.test(route) && opts.method === "POST") {
+    const id = route.split("/")[3];
+    const m = memberships.find((x) => x.id === id);
+    if (!m) throw new Error("Membership not found");
+    m.status = "cancelled";
+    m.renewsAt = null; // stays active until expiry, then lapses
+    return m;
   }
 
   if (route === "/v1/market/listings" && (opts.method ?? "GET") === "GET") {

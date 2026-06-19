@@ -252,6 +252,61 @@ export const dmThreadDetailSchema = z.object({
   messages: z.array(dmMessageSchema),
 });
 
+/* ── Fan Clubs / premium subscriptions (PRD §6.6, §7.3, §8.3) ──────────────────
+   Tiered recurring memberships (Paystack billing). Access is gated on the
+   OFF-CHAIN entitlement; membership is mirrored as an expiring ERC-5643 badge.
+   Billing truth stays off-chain — never gate on an on-chain read. */
+export const fanClubTierSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  price: moneySchema, // NGN / month
+  perks: z.array(z.string()),
+  /** Badge label shown once active. */
+  badge: z.string(),
+});
+
+export const fanClubSchema = z.object({
+  creator: z.object({
+    handle: z.string(),
+    displayName: z.string(),
+    verified: z.boolean(),
+  }),
+  tiers: z.array(fanClubTierSchema),
+  /** The viewer's current membership state for this club. */
+  viewer: z.object({
+    tierId: z.string().nullable(),
+    status: z.enum(["none", "active", "expired"]),
+    expiresAt: z.string().nullable(),
+  }),
+  /** A peek at members-only content (locked unless subscribed). */
+  lockedPreview: z.array(z.object({ id: z.string(), title: z.string() })),
+});
+
+export const membershipSchema = z.object({
+  id: z.string(),
+  creatorHandle: z.string(),
+  displayName: z.string(),
+  tierName: z.string(),
+  status: z.enum(["active", "expired", "cancelled"]),
+  /** Next billing date while active; null once cancelled/expired. */
+  renewsAt: z.string().nullable(),
+  expiresAt: z.string(),
+});
+
+/** Intent to start a recurring subscription; client hands `reference` to Paystack. */
+export const subscribeIntentSchema = z.object({
+  reference: z.string(),
+  accessCode: z.string(),
+  price: moneySchema,
+});
+
+/** Subscription status — `active` is set from the Paystack webhook (off-chain truth). */
+export const subscriptionStatusSchema = z.object({
+  reference: z.string(),
+  status: z.enum(["pending", "active", "failed"]),
+  membership: membershipSchema.nullable(),
+});
+
 /* ── Marketplace (PRD §6.7 — creator economy) ──────────────────────────────────
    Beats, songs, tickets, merch, services. Listings/orders/escrow against the
    ledger; platform commission is a fee entry. Digital goods deliver on
@@ -449,6 +504,11 @@ export type Hashtag = z.infer<typeof hashtagSchema>;
 export type SearchClip = z.infer<typeof searchClipSchema>;
 export type SearchResult = z.infer<typeof searchResultSchema>;
 export type Ambassador = z.infer<typeof ambassadorSchema>;
+export type FanClubTier = z.infer<typeof fanClubTierSchema>;
+export type FanClub = z.infer<typeof fanClubSchema>;
+export type Membership = z.infer<typeof membershipSchema>;
+export type SubscribeIntent = z.infer<typeof subscribeIntentSchema>;
+export type SubscriptionStatus = z.infer<typeof subscriptionStatusSchema>;
 export type MarketCategory = z.infer<typeof marketCategorySchema>;
 export type MarketListing = z.infer<typeof marketListingSchema>;
 export type MarketListingDetail = z.infer<typeof marketListingDetailSchema>;

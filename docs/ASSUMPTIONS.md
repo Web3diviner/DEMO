@@ -47,8 +47,10 @@ Legend: ✅ confirmed by PRD · 🟡 PRD says TBD / needs a value · 🔵 deferr
   explainable composites, export).
 - ✅ Marketplace (§6.7) — built ahead of phase, behind the `marketplace` feature flag (listings,
   Credit checkout, digital delivery + physical fulfilment). Seller listing-creation is a follow-up.
-- 🔵 Fan Clubs / premium subscriptions (ERC-5643), Events/NFT tickets, transferable asset NFTs,
-  crypto on-ramp, multi-campus, advanced two-tower ML ranking. Gated by phase + flags.
+- ✅ Fan Clubs / premium subscriptions (§6.6) — built ahead of phase, behind the `premium` flag
+  (tiers, recurring billing, entitlement-gated content, expiring-badge model, membership mgmt).
+- 🔵 Events/NFT tickets, transferable asset NFTs, crypto on-ramp, multi-campus, advanced two-tower
+  ML ranking. Gated by phase + flags.
 
 ## Frontend follow-ups
 

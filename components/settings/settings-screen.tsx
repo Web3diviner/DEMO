@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Bell, Gauge, LogOut, Shield } from "lucide-react";
+import Link from "next/link";
+import { Bell, ChevronRight, Crown, Gauge, LogOut, Shield } from "lucide-react";
 import { useDataPolicy } from "@/lib/hooks/use-data-policy";
 import { getPushState, enablePush, disablePush, type PushState } from "@/lib/push/web-push";
 import { track } from "@/lib/analytics";
@@ -140,6 +141,16 @@ export function SettingsScreen() {
       <section className="mt-6">
         <h2 className="text-subtle mb-1 text-xs font-medium uppercase">Account</h2>
         <div className="divide-line divide-y">
+          <Link href="/memberships" className="flex items-center gap-3 py-4">
+            <span className="bg-elevated text-muted grid h-9 w-9 shrink-0 place-items-center rounded-full">
+              <Crown className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-medium">Memberships</p>
+              <p className="text-subtle text-xs">Your Fan Club subscriptions</p>
+            </div>
+            <ChevronRight className="text-subtle h-4 w-4" aria-hidden />
+          </Link>
           <Row icon={Shield} title="Privacy" desc="Manage your data and consent" />
           <button
             type="button"

@@ -3,7 +3,16 @@
 import * as React from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { BadgeCheck, ChevronRight, Megaphone, Play, Settings, Store, Swords } from "lucide-react";
+import {
+  BadgeCheck,
+  ChevronRight,
+  Crown,
+  Megaphone,
+  Play,
+  Settings,
+  Store,
+  Swords,
+} from "lucide-react";
 import { api } from "@/lib/api/client";
 import { useFlag } from "@/lib/flags-provider";
 import { Button } from "@/components/ui/button";
@@ -21,6 +30,7 @@ function Stat({ label, value }: { label: string; value: number }) {
 
 export function TalentHub({ handle }: { handle: string }) {
   const marketplaceOn = useFlag("marketplace");
+  const premiumOn = useFlag("premium");
   const { data, status } = useQuery({
     queryKey: ["profile", handle],
     queryFn: ({ signal }) => api.profiles.get(handle, signal),
@@ -97,6 +107,23 @@ export function TalentHub({ handle }: { handle: string }) {
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-semibold">Marketplace</span>
             <span className="text-subtle block text-xs">Beats, tickets, merch &amp; more.</span>
+          </span>
+          <ChevronRight className="text-subtle h-4 w-4 shrink-0" aria-hidden />
+        </Link>
+      )}
+
+      {/* Fan Club entry (feature-flagged) */}
+      {premiumOn && (
+        <Link
+          href={`/fanclub/${creator.handle}`}
+          className="border-gold/30 bg-surface mt-4 flex items-center gap-3 rounded-lg border p-3 active:scale-[0.99]"
+        >
+          <span className="bg-gold/15 text-gold grid h-9 w-9 shrink-0 place-items-center rounded-full">
+            <Crown className="h-4 w-4" aria-hidden />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold">Join the Fan Club</span>
+            <span className="text-subtle block text-xs">Members-only drops &amp; perks.</span>
           </span>
           <ChevronRight className="text-subtle h-4 w-4 shrink-0" aria-hidden />
         </Link>

@@ -16,8 +16,8 @@ export type FlagKey =
 export type Flags = Record<FlagKey, boolean>;
 
 export const DEFAULT_FLAGS: Flags = {
-  premium: false,
   // Enabled for this build; in production the backend flips flags for staged rollout.
+  premium: true,
   marketplace: true,
   multiCampus: false,
   battles: true,

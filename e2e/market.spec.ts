@@ -13,7 +13,7 @@ test("a fan can browse and buy a digital good with Credits", async ({ page }) =>
   // Buy → confirm → Credit spend confirmed, digital delivered.
   await page.getByRole("button", { name: /^Buy ·/ }).click();
   await expect(page.getByRole("dialog", { name: /confirm purchase/i })).toBeVisible();
-  await page.getByRole("button", { name: /^Pay /).click();
+  await page.getByRole("button", { name: /^Pay / }).click();
   await expect(page.getByText(/yours now/i)).toBeVisible();
 });
 

@@ -340,6 +340,69 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Ambassador" }
+  /v1/creators/{handle}/fanclub:
+    get:
+      summary: A creator's Fan Club — tiers, membership state, locked preview (PRD §6.6)
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Fan Club
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FanClub" }
+  /v1/fanclub/subscribe:
+    post:
+      summary: Start a recurring subscription; returns a Paystack reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [creatorHandle, tierId]
+              properties:
+                creatorHandle: { type: string }
+                tierId: { type: string }
+      responses:
+        "200":
+          description: Subscribe intent
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SubscribeIntent" }
+  /v1/fanclub/subscribe/{reference}:
+    get:
+      summary: Subscription status — `active` set from the Paystack webhook (off-chain truth)
+      parameters:
+        - { name: reference, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Status (poll until non-pending)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SubscriptionStatus" }
+  /v1/memberships:
+    get:
+      summary: The signed-in user's Fan Club memberships
+      responses:
+        "200":
+          description: Memberships
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Membership" }
+  /v1/memberships/{id}/cancel:
+    post:
+      summary: Cancel a membership (access lasts until the period ends)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Updated membership
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Membership" }
   /v1/market/listings:
     get:
       summary: Marketplace listings (PRD §6.7), optionally by category
@@ -795,6 +858,70 @@ components:
               id: { type: string }
               posterUrl: { type: string, format: uri }
               plays: { type: integer }
+    FanClubTier:
+      type: object
+      required: [id, name, price, perks, badge]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        price: { $ref: "#/components/schemas/Money" }
+        perks: { type: array, items: { type: string } }
+        badge: { type: string }
+    FanClub:
+      type: object
+      required: [creator, tiers, viewer, lockedPreview]
+      properties:
+        creator:
+          type: object
+          required: [handle, displayName, verified]
+          properties:
+            handle: { type: string }
+            displayName: { type: string }
+            verified: { type: boolean }
+        tiers: { type: array, items: { $ref: "#/components/schemas/FanClubTier" } }
+        viewer:
+          type: object
+          required: [tierId, status, expiresAt]
+          properties:
+            tierId: { type: string, nullable: true }
+            status: { type: string, enum: [none, active, expired] }
+            expiresAt: { type: string, format: date-time, nullable: true }
+        lockedPreview:
+          type: array
+          items:
+            type: object
+            required: [id, title]
+            properties:
+              id: { type: string }
+              title: { type: string }
+    Membership:
+      type: object
+      required: [id, creatorHandle, displayName, tierName, status, renewsAt, expiresAt]
+      properties:
+        id: { type: string }
+        creatorHandle: { type: string }
+        displayName: { type: string }
+        tierName: { type: string }
+        status: { type: string, enum: [active, expired, cancelled] }
+        renewsAt: { type: string, format: date-time, nullable: true }
+        expiresAt: { type: string, format: date-time }
+    SubscribeIntent:
+      type: object
+      required: [reference, accessCode, price]
+      properties:
+        reference: { type: string }
+        accessCode: { type: string }
+        price: { $ref: "#/components/schemas/Money" }
+    SubscriptionStatus:
+      type: object
+      required: [reference, status, membership]
+      properties:
+        reference: { type: string }
+        status: { type: string, enum: [pending, active, failed] }
+        membership:
+          oneOf:
+            - { $ref: "#/components/schemas/Membership" }
+            - { type: "null" }
     MarketListing:
       type: object
       required: [id, title, category, kind, price, creator, coverUrl, blurb, soldCount]

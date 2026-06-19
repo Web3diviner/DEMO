@@ -27,6 +27,10 @@ import {
   marketListingSchema,
   marketListingDetailSchema,
   marketOrderSchema,
+  fanClubSchema,
+  membershipSchema,
+  subscribeIntentSchema,
+  subscriptionStatusSchema,
   type EngagementAction,
   type FeedKind,
   type TipResult,
@@ -45,6 +49,10 @@ import {
   type MarketListingDetail,
   type MarketOrder,
   type MarketCategory,
+  type FanClub,
+  type Membership,
+  type SubscribeIntent,
+  type SubscriptionStatus,
   type FeedPage,
   type EngagementResult,
   type UploadTicket,
@@ -295,6 +303,44 @@ export const api = {
         body: input,
         idempotencyKey: `order:${input.listingId}:${Date.now()}`,
       });
+    },
+  },
+  premium: {
+    /** A creator's Fan Club: tiers, the viewer's membership, and locked-content preview. */
+    fanclub(handle: string, signal?: AbortSignal): Promise<FanClub> {
+      return request(`/v1/creators/${encodeURIComponent(handle)}/fanclub`, fanClubSchema, {
+        signal,
+      });
+    },
+    /** Start a recurring subscription; returns the Paystack reference for the popup. */
+    subscribe(creatorHandle: string, tierId: string): Promise<SubscribeIntent> {
+      return request(`/v1/fanclub/subscribe`, subscribeIntentSchema, {
+        method: "POST",
+        body: { creatorHandle, tierId },
+        idempotencyKey: `sub:${creatorHandle}:${tierId}:${Date.now()}`,
+      });
+    },
+    /** Poll until the first charge is webhook-confirmed; entitlement flips `active`. */
+    subscriptionStatus(reference: string, signal?: AbortSignal): Promise<SubscriptionStatus> {
+      return request(
+        `/v1/fanclub/subscribe/${encodeURIComponent(reference)}`,
+        subscriptionStatusSchema,
+        {
+          signal,
+        },
+      );
+    },
+    memberships(signal?: AbortSignal): Promise<Membership[]> {
+      return request(`/v1/memberships`, z.array(membershipSchema), { signal });
+    },
+    cancel(membershipId: string): Promise<Membership> {
+      return request(
+        `/v1/memberships/${encodeURIComponent(membershipId)}/cancel`,
+        membershipSchema,
+        {
+          method: "POST",
+        },
+      );
     },
   },
   push: {
