@@ -1,63 +1,55 @@
 # Assumptions & Open Questions
 
-The domain doc (`DEMO_PRD.md`) was not available when this foundation was built — only the
-Frontend Build Instructions. The **foundation, design system, and feed slice do not depend** on the
-items below, but the following surfaces will. Each is isolated behind a type/contract so correcting
-it later is a localized change, not a rewrite.
+`DEMO_PRD.md` v1.0 (17 Jun 2026) is now available and resolved the previously-blocking items. This
+log records what's confirmed and what's still genuinely open (TBD in the PRD itself).
 
-Legend: 🟢 safe default · 🟡 needs confirmation · 🔴 blocking before that feature ships.
+Legend: ✅ confirmed by PRD · 🟡 PRD says TBD / needs a value · 🔵 deferred (post-MVP).
 
-## Money & Credits
+## Resolved by the PRD
 
-- 🟡 **Credit ↔ NGN top-up rate** and pack sizes. Modeled as opaque integer Credits; rate lives
-  server-side. Client only displays server-returned prices. → `lib/money.ts`, `contracts`.
-- 🟡 **What 1 Credit buys** (battle vote cost, gift tiers). Vote cost is a contract field, not hardcoded.
-- 🟡 **Creator earnings → cash conversion** (rate, minimum withdrawal, KYC). UI keeps earnings and
-  Credits visually distinct already; conversion flow is stubbed.
-- 🟢 Currencies: Credits (internal), NGN (kobo), USD (cents). All integer minor units.
+- ✅ **Backend = Go (decided)** (§10.1). The web client consumes a generated typed API client over
+  the Go↔TS boundary — exactly the contract-first approach in `lib/api` + `contracts/openapi.yaml`.
+- ✅ **Credits**: prepaid, closed-loop, **spend-only**, non-redeemable, non-transferable; bought with
+  naira via Paystack; issued on idempotent webhook confirm into a double-entry ledger (§7.1).
+  Matches `lib/money` (integer minor units) and the no-optimistic-credit top-up flow.
+- ✅ **Creator earnings** = a naira revenue-share **payable** (not a wallet balance): cash out via
+  Paystack Transfers (KYC + threshold) **or** convert to spend-Credits (§7.2). The wallet UI keeps
+  Credits vs earnings distinct and offers withdraw/convert.
+- ✅ **Platform fee** 10–25% per transaction type, atomic ledger entry (§7.3).
+- ✅ **Battles** (§6.5): state machine Draft→Open→Voting→Settled→Archived; each vote is a Credit
+  transaction (cost → escrow + platform fee); settlement distributes escrow; **verified-user vote
+  weighting** (§8.4/8.5). Implemented in `/battles` + `/battles/[id]`.
+- ✅ **Charts** (§6.4): campus/state/national/genre/**rising**; time-decay scoring; **Rising Stars
+  ranks growth velocity, not totals**; verified weighting on official boards. Implemented in
+  `/charts` (campus + rising for MVP).
+- ✅ **Verification**: $1 creator registration (KYC'd, soulbound badge mint, gas-sponsored); access
+  gates on the **off-chain entitlement, never an on-chain check** (§5.4, §8). Matches the
+  verification onboarding + the "gate on backend entitlement" rule.
+- ✅ **Feed**: two feeds — algorithmic **For You** and **Following/Support** (§6.1). (We currently
+  ship FYP; the Following toggle is a small follow-up — see below.)
+- ✅ **Talent Intelligence** (§6.9): explainable composites — Talent Growth, Virality, Fan Loyalty,
+  Campus Influence, Label/Sponsor Readiness; transparent (not one opaque number); enterprise
+  search/filter. Schema for the scout dashboard build.
 
-## Verification
+## Still open (PRD marks TBD)
 
-- 🟡 **Exact price points**: "$1 creator / <$1 fan" — is fan price fixed (e.g. $0.50) or variable?
-  Modeled as a server-quoted amount.
-- 🟡 **What the badge gates** (upload? battles? DMs? withdrawal?). Gating reads a backend
-  `entitlements` object; the specific keys are placeholders pending the PRD.
-- 🟢 Wallet is invisible; provisioned server-side post-verification; surfaced only as a badge.
+- 🟡 **Verified-fan fee** exact value ("< $1, TBD", §7.3/§13). Modeled as a server-quoted amount.
+- 🟡 **Exact vote cost** and the **platform-fee split per transaction type** (PRD gives the 10–25%
+  range). Vote cost is a contract field (`Battle.voteCost`), not hardcoded in the client.
+- 🟡 **Verified-user vote weight** multiplier (PRD says verified carry "more weight", no number).
+  Carried as `Battle.viewer.voteWeight` from the server (mock uses 3×).
+- 🟡 **Embedded-wallet vendor** and **moderation/CSAM vendor** (§13). Isolated behind the server.
+- 🟡 **KYC provider** for Tier 1–3 (§9.3).
 
-## Battles
+## Deferred (post-MVP, per §11/§12)
 
-- 🔴 **Format & scoring**: 1v1? bracket? duration? tie-break? vote weighting? Needed before the
-  battles surface is built. Feed slice is independent of this.
-- 🟡 **Vote → Credit consumption** mechanics and refunds.
+- 🔵 Marketplace, Fan Clubs / premium subscriptions (ERC-5643), Events/NFT tickets, transferable
+  asset NFTs, crypto on-ramp, multi-campus, advanced two-tower ML ranking, enterprise scouting
+  dashboard (Phase 3). Route groups/stubs exist; full builds gated by phase + feature flags.
 
-## Charts
+## Frontend follow-ups (not blocked)
 
-- 🔴 **Ranking math**: what is ranked (creators? clips? campuses?), window, and the formula
-  (engagement-weighted? Credit-weighted? velocity?). Needed before charts surface.
-
-## Talent Intelligence (enterprise / scout)
-
-- 🟡 **Searchable fields, filters, export format/limits**, and the privacy boundary (what scouts may
-  see vs. consumer privacy). Stubbed behind enterprise RBAC.
-
-## Recommendation / analytics
-
-- 🟢 Instrument impressions, completion, dwell, and all engagement from day one (per instructions).
-  Event schema in `lib/analytics.ts` is a starting contract; align with the feature-store schema.
-- 🟡 Privacy/consent model for Nigerian users (NDPR). Analytics layer has a consent gate hook.
-
-## Identity & auth
-
-- 🟡 **Auth provider** for the three separate realms (consumer / staff SSO / enterprise). Client
-  models them as distinct sessions; provider TBD.
-
-## Infra
-
-- 🟡 **CDN/edge provider** and **object store** (R2 vs S3). Architecture is provider-agnostic; tus +
-  signed-URL pattern holds either way.
-- 🟡 **Embedded-wallet SDK** vendor. Isolated behind a thin server boundary; no client SDK assumed.
-
----
-
-When `DEMO_PRD.md` arrives, resolve the 🔴 items first (battles, charts), then the 🟡 money/verification
-specifics. None should require changing the foundation or design system.
+- Following/Support feed toggle on the feed (FYP ↔ Following).
+- One-tap **support/tip** action in the feed engagement rail (Credits spend, §6.1).
+- Basic **DMs** and **push** (MVP scope, §11).
+- Hashtags/search, ambassador onboarding (MVP scope).

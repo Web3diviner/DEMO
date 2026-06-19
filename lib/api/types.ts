@@ -159,6 +159,72 @@ export const commentPageSchema = z.object({
   total: z.number().int(),
 });
 
+/* ── Battles (PRD §6.5) ───────────────────────────────────────────────────
+   Time-boxed contests; fans vote with Credits (vote cost → escrow + platform
+   fee). State machine Draft→Open→Voting→Settled→Archived. Verified users carry
+   more voting weight (§8.4/8.5). */
+export const battleFormatSchema = z.enum(["rap", "gospel", "beat", "choir", "songwriting"]);
+export const battleStateSchema = z.enum(["draft", "open", "voting", "settled", "archived"]);
+
+export const battleContestantSchema = z.object({
+  id: z.string(),
+  creator: creatorSchema,
+  posterUrl: z.string().url(),
+  /** Weighted vote tally (verified votes count for more). */
+  votes: z.number().int(),
+});
+
+export const battleSchema = z.object({
+  id: z.string(),
+  format: battleFormatSchema,
+  title: z.string(),
+  state: battleStateSchema,
+  /** When the Voting window closes (ISO). Null outside Voting. */
+  endsAt: z.string().nullable(),
+  /** Cost of one vote, in Credits. */
+  voteCost: moneySchema,
+  /** Escrowed prize pool, in Credits. */
+  prizePool: moneySchema,
+  contestants: z.array(battleContestantSchema),
+  /** The winning contestant once settled. */
+  winnerContestantId: z.string().nullable(),
+  viewer: z.object({
+    /** Which contestant the viewer has backed (one vote per battle in MVP). */
+    votedContestantId: z.string().nullable(),
+    /** The viewer's vote weight (1 free, higher when verified). */
+    voteWeight: z.number().int(),
+  }),
+});
+
+export const voteResultSchema = z.object({
+  battle: battleSchema,
+  /** Server-truth wallet after the Credit spend (never optimistic). */
+  wallet: walletSchema,
+});
+
+/* ── Charts (PRD §6.4) ────────────────────────────────────────────────────
+   Time-decay leaderboards. Rising Stars ranks velocity (growth), not totals. */
+export const chartBoardSchema = z.enum(["campus", "state", "national", "genre", "rising"]);
+
+export const chartEntrySchema = z.object({
+  rank: z.number().int(),
+  /** Rank change since the last rollup (+up / -down / 0 new-or-flat). */
+  delta: z.number().int(),
+  creator: creatorSchema,
+  /** Composite score for this board. */
+  score: z.number(),
+  /** For Rising Stars: growth rate as a percentage. */
+  risingPct: z.number().nullable(),
+});
+
+export const chartSchema = z.object({
+  board: chartBoardSchema,
+  scope: z.string().nullable(),
+  /** Human label for the rollup window, e.g. "This week". */
+  periodLabel: z.string(),
+  entries: z.array(chartEntrySchema),
+});
+
 export type Money = z.infer<typeof moneySchema>;
 export type Rendition = z.infer<typeof renditionSchema>;
 export type Creator = z.infer<typeof creatorSchema>;
@@ -167,6 +233,14 @@ export type FeedPage = z.infer<typeof feedPageSchema>;
 export type EngagementResult = z.infer<typeof engagementResultSchema>;
 export type UploadTicket = z.infer<typeof uploadTicketSchema>;
 export type PublishResult = z.infer<typeof publishResultSchema>;
+export type BattleFormat = z.infer<typeof battleFormatSchema>;
+export type BattleState = z.infer<typeof battleStateSchema>;
+export type BattleContestant = z.infer<typeof battleContestantSchema>;
+export type Battle = z.infer<typeof battleSchema>;
+export type VoteResult = z.infer<typeof voteResultSchema>;
+export type ChartBoard = z.infer<typeof chartBoardSchema>;
+export type ChartEntry = z.infer<typeof chartEntrySchema>;
+export type Chart = z.infer<typeof chartSchema>;
 export type Profile = z.infer<typeof profileSchema>;
 export type Wallet = z.infer<typeof walletSchema>;
 export type CreditPack = z.infer<typeof creditPackSchema>;

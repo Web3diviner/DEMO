@@ -176,6 +176,81 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/CommentPage" }
+  /v1/battles:
+    get:
+      summary: Battles, optionally filtered by state (PRD §6.5)
+      parameters:
+        - name: state
+          in: query
+          required: false
+          schema: { type: string, enum: [draft, open, voting, settled, archived] }
+      responses:
+        "200":
+          description: Battles
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Battle" }
+  /v1/battles/{id}:
+    get:
+      summary: A single battle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Battle
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Battle" }
+  /v1/battles/{id}/vote:
+    post:
+      summary: Cast one Credit-funded, weight-adjusted vote (vote cost → escrow + platform fee)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contestantId]
+              properties:
+                contestantId: { type: string }
+      responses:
+        "200":
+          description: Updated battle + server-truth wallet after the spend
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VoteResult" }
+  /v1/charts/{board}:
+    get:
+      summary: Leaderboard for a board (PRD §6.4); Rising ranks growth velocity
+      parameters:
+        - name: board
+          in: path
+          required: true
+          schema: { type: string, enum: [campus, state, national, genre, rising] }
+        - name: scope
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: Chart
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Chart" }
 components:
   schemas:
     Money:
@@ -287,6 +362,72 @@ components:
       properties:
         credits: { $ref: "#/components/schemas/Money" }
         earnings: { $ref: "#/components/schemas/Money" }
+    BattleContestant:
+      type: object
+      required: [id, creator, posterUrl, votes]
+      properties:
+        id: { type: string }
+        creator: { $ref: "#/components/schemas/Creator" }
+        posterUrl: { type: string, format: uri }
+        votes: { type: integer, description: Weighted vote tally }
+    Battle:
+      type: object
+      required:
+        [
+          id,
+          format,
+          title,
+          state,
+          endsAt,
+          voteCost,
+          prizePool,
+          contestants,
+          winnerContestantId,
+          viewer,
+        ]
+      properties:
+        id: { type: string }
+        format: { type: string, enum: [rap, gospel, beat, choir, songwriting] }
+        title: { type: string }
+        state: { type: string, enum: [draft, open, voting, settled, archived] }
+        endsAt: { type: string, format: date-time, nullable: true }
+        voteCost: { $ref: "#/components/schemas/Money" }
+        prizePool: { $ref: "#/components/schemas/Money" }
+        contestants:
+          type: array
+          items: { $ref: "#/components/schemas/BattleContestant" }
+        winnerContestantId: { type: string, nullable: true }
+        viewer:
+          type: object
+          required: [votedContestantId, voteWeight]
+          properties:
+            votedContestantId: { type: string, nullable: true }
+            voteWeight: { type: integer }
+    VoteResult:
+      type: object
+      required: [battle, wallet]
+      properties:
+        battle: { $ref: "#/components/schemas/Battle" }
+        wallet: { $ref: "#/components/schemas/Wallet" }
+    ChartEntry:
+      type: object
+      required: [rank, delta, creator, score, risingPct]
+      properties:
+        rank: { type: integer }
+        delta: { type: integer, description: Rank change since last rollup }
+        creator: { $ref: "#/components/schemas/Creator" }
+        score: { type: number }
+        risingPct: { type: number, nullable: true }
+    Chart:
+      type: object
+      required: [board, scope, periodLabel, entries]
+      properties:
+        board: { type: string, enum: [campus, state, national, genre, rising] }
+        scope: { type: string, nullable: true }
+        periodLabel: { type: string }
+        entries:
+          type: array
+          items: { $ref: "#/components/schemas/ChartEntry" }
     CreditPack:
       type: object
       required: [id, credits, price, badge]

@@ -10,6 +10,9 @@ import {
   topUpIntentSchema,
   topUpStatusSchema,
   commentPageSchema,
+  battleSchema,
+  voteResultSchema,
+  chartSchema,
   type EngagementAction,
   type FeedPage,
   type EngagementResult,
@@ -21,6 +24,11 @@ import {
   type TopUpIntent,
   type TopUpStatus,
   type CommentPage,
+  type Battle,
+  type BattleState,
+  type VoteResult,
+  type Chart,
+  type ChartBoard,
 } from "./types";
 
 /**
@@ -166,6 +174,29 @@ export const api = {
       return request(`/v1/clips/${encodeURIComponent(clipId)}/comments${qs}`, commentPageSchema, {
         signal,
       });
+    },
+  },
+  battles: {
+    list(state: BattleState | "all", signal?: AbortSignal): Promise<Battle[]> {
+      const qs = state === "all" ? "" : `?state=${state}`;
+      return request(`/v1/battles${qs}`, z.array(battleSchema), { signal });
+    },
+    get(id: string, signal?: AbortSignal): Promise<Battle> {
+      return request(`/v1/battles/${encodeURIComponent(id)}`, battleSchema, { signal });
+    },
+    /** Cast one Credit-funded, weight-adjusted vote. Spend is server-truth; never optimistic. */
+    vote(id: string, contestantId: string): Promise<VoteResult> {
+      return request(`/v1/battles/${encodeURIComponent(id)}/vote`, voteResultSchema, {
+        method: "POST",
+        body: { contestantId },
+        idempotencyKey: `vote:${id}:${contestantId}`,
+      });
+    },
+  },
+  charts: {
+    get(board: ChartBoard, scope: string | null, signal?: AbortSignal): Promise<Chart> {
+      const qs = scope ? `?scope=${encodeURIComponent(scope)}` : "";
+      return request(`/v1/charts/${board}${qs}`, chartSchema, { signal });
     },
   },
 };

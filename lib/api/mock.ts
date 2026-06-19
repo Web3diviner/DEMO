@@ -132,6 +132,85 @@ function commentsFor(clipId: string) {
   }));
 }
 
+// ── Battles (PRD §6.5) ───────────────────────────────────────────────────────
+const VOTE_COST = 10; // Credits per vote
+// The mock viewer is a verified fan, so their votes carry extra weight (§8.4/8.5).
+const VIEWER_VOTE_WEIGHT = 3;
+
+function contestant(seed: number) {
+  const c = CREATORS[seed % CREATORS.length];
+  return {
+    id: `ct_${seed}`,
+    creator: { ...c, avatarUrl: null },
+    posterUrl: poster(seed),
+    votes: 0,
+  };
+}
+
+type MockBattle = ReturnType<typeof makeBattle>;
+function makeBattle(
+  id: string,
+  format: string,
+  title: string,
+  state: string,
+  endsInMin: number | null,
+  seedA: number,
+  seedB: number,
+  votesA: number,
+  votesB: number,
+) {
+  const a = { ...contestant(seedA), votes: votesA };
+  const b = { ...contestant(seedB), votes: votesB };
+  const winner = state === "settled" ? (votesA >= votesB ? a.id : b.id) : null;
+  return {
+    id,
+    format,
+    title,
+    state,
+    endsAt: endsInMin != null ? new Date(Date.now() + endsInMin * 60_000).toISOString() : null,
+    voteCost: { currency: "CREDITS" as const, minor: VOTE_COST },
+    prizePool: { currency: "CREDITS" as const, minor: (votesA + votesB) * VOTE_COST },
+    contestants: [a, b],
+    winnerContestantId: winner,
+    viewer: { votedContestantId: null as string | null, voteWeight: VIEWER_VOTE_WEIGHT },
+  };
+}
+
+const battles = new Map<string, MockBattle>([
+  [
+    "battle_live",
+    makeBattle("battle_live", "rap", "Freshers' Rap Clash", "voting", 180, 0, 1, 312, 287),
+  ],
+  [
+    "battle_soon",
+    makeBattle("battle_soon", "gospel", "Sunday Praise-Off", "open", null, 2, 0, 0, 0),
+  ],
+  [
+    "battle_done",
+    makeBattle("battle_done", "beat", "Beat Makers Final", "settled", null, 1, 2, 540, 498),
+  ],
+]);
+
+function chartFor(board: string) {
+  const rising = board === "rising";
+  const entries = Array.from({ length: 8 }, (_, k) => {
+    const c = CREATORS[k % CREATORS.length];
+    return {
+      rank: k + 1,
+      delta: [3, 0, -1, 2, 0, 1, -2, 4][k],
+      creator: { ...c, handle: `${c.handle}${k}`, avatarUrl: null },
+      score: rising ? 0 : Math.round(9800 - k * 720 + Math.random() * 50),
+      risingPct: rising ? Math.round((180 - k * 18) * 10) / 10 : null,
+    };
+  });
+  // Rising sorts by growth velocity, not totals (PRD §6.4).
+  if (rising)
+    entries
+      .sort((x, y) => (y.risingPct ?? 0) - (x.risingPct ?? 0))
+      .forEach((e, i) => (e.rank = i + 1));
+  return { board, scope: board === "campus" ? "UNILAG" : null, periodLabel: "This week", entries };
+}
+
 export async function handleMock(
   path: string,
   opts: { method?: string; body?: unknown },
@@ -240,6 +319,42 @@ export async function handleMock(
   if (/^\/v1\/clips\/[^/]+\/comments$/.test(route) && (opts.method ?? "GET") === "GET") {
     const clipId = route.split("/")[3];
     return { items: commentsFor(clipId), nextCursor: null, total: 42 };
+  }
+
+  if (route === "/v1/battles" && (opts.method ?? "GET") === "GET") {
+    const state = new URLSearchParams(query).get("state");
+    const all = [...battles.values()];
+    return state ? all.filter((b) => b.state === state) : all;
+  }
+
+  if (/^\/v1\/battles\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
+    const id = route.split("/")[3];
+    const battle = battles.get(id);
+    if (!battle) throw new Error("Battle not found");
+    return battle;
+  }
+
+  if (/^\/v1\/battles\/[^/]+\/vote$/.test(route) && opts.method === "POST") {
+    const id = route.split("/")[3];
+    const battle = battles.get(id);
+    if (!battle) throw new Error("Battle not found");
+    if (battle.state !== "voting") throw new Error("Voting is closed for this battle");
+    if (battle.viewer.votedContestantId) throw new Error("You have already voted in this battle");
+    if (wallet.credits.minor < VOTE_COST) throw new Error("Not enough Credits");
+    const { contestantId } = opts.body as { contestantId: string };
+    const target = battle.contestants.find((c) => c.id === contestantId);
+    if (!target) throw new Error("Contestant not found");
+    // Spend Credits (server truth), add weighted vote, grow the escrowed prize pool.
+    wallet.credits = { ...wallet.credits, minor: wallet.credits.minor - VOTE_COST };
+    target.votes += battle.viewer.voteWeight;
+    battle.prizePool = { ...battle.prizePool, minor: battle.prizePool.minor + VOTE_COST };
+    battle.viewer = { ...battle.viewer, votedContestantId: contestantId };
+    return { battle, wallet };
+  }
+
+  if (/^\/v1\/charts\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
+    const board = route.split("/")[3];
+    return chartFor(board);
   }
 
   throw new Error(`Mock: unhandled route ${path}`);

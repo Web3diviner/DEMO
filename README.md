@@ -8,7 +8,8 @@ mid-range Android over expensive, intermittent mobile data, and every decision r
 
 ## Status
 
-This repo is the **frontend foundation** (contract-first; no backend required to run):
+This repo is the **frontend foundation** (contract-first; no backend required to run). Built to
+`DEMO_PRD.md` v1.0 — backend is **Go (decided)**; this client consumes a typed API contract.
 
 - ✅ Next.js 16 (App Router) + React 19 + TypeScript + Tailwind v4
 - ✅ Design system (tokens, primitives, a11y/motion baked in) — see [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md)
@@ -22,6 +23,10 @@ This repo is the **frontend foundation** (contract-first; no backend required to
 - ✅ **Top-up flow** (Paystack Inline): server-quoted packs, pending→webhook-confirmed, no
   optimistic credit; live wallet with Credits/earnings kept distinct
 - ✅ **Comments** sheet (accessible bottom-sheet primitive) with optimistic posting via the queue
+- ✅ **Battles** (PRD §6.5): state machine, live countdown, Credit-funded **weighted votes**
+  (server-truth spend), escrow prize pool, settled results — `/battles` + `/battles/[id]`
+- ✅ **Charts** (PRD §6.4): campus + **Rising Stars** (growth-velocity ranked), rank deltas,
+  verified weighting
 - ✅ Route groups + RBAC mirror for `(marketing) (app) (admin) (enterprise)`
 - ✅ Security headers / CSP, typed+validated API client, analytics event contract, feature flags
 - ✅ Tests (Vitest unit + component, Playwright e2e) and CI
