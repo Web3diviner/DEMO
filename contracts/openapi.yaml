@@ -1,0 +1,168 @@
+openapi: 3.1.0
+info:
+  title: DEMO API
+  version: 0.1.0
+  description: >
+    Contract-first source of truth for the DEMO client. The frontend's typed client and Zod
+    validators in `lib/api` mirror these schemas 1:1; once a backend publishes this spec, the
+    TypeScript types are generated from it in CI. Money is always integer minor units. Video never
+    transits this API — uploads use signed tus tickets, playback uses signed expiring HLS URLs.
+servers:
+  - url: https://api.demo.example
+paths:
+  /v1/feed:
+    get:
+      summary: Personalized talent feed (cursor-paginated)
+      parameters:
+        - name: cursor
+          in: query
+          required: false
+          schema: { type: string, nullable: true }
+      responses:
+        "200":
+          description: A page of clips
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FeedPage" }
+  /v1/engagement:
+    post:
+      summary: Commit a single engagement action (like/follow/comment)
+      description: Idempotent via the Idempotency-Key header; safe to retry from the offline queue.
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EngagementAction" }
+      responses:
+        "200":
+          description: Server-confirmed engagement result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EngagementResult" }
+  /v1/uploads/ticket:
+    post:
+      summary: Issue a short-lived signed tus ticket for direct-to-storage video upload
+      responses:
+        "200":
+          description: Signed upload ticket
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [endpoint, expiresAt]
+                properties:
+                  endpoint: { type: string, format: uri }
+                  expiresAt: { type: string, format: date-time }
+  /v1/wallet:
+    get:
+      summary: Fan Credits + creator earnings (server-truth balances)
+      responses:
+        "200":
+          description: Wallet balances
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [credits, earnings]
+                properties:
+                  credits: { $ref: "#/components/schemas/Money" }
+                  earnings: { $ref: "#/components/schemas/Money" }
+components:
+  schemas:
+    Money:
+      type: object
+      required: [currency, minor]
+      properties:
+        currency: { type: string, enum: [CREDITS, NGN, USD] }
+        minor: { type: integer, description: Amount in minor units (kobo/cents/whole Credits) }
+    Creator:
+      type: object
+      required: [id, handle, displayName, avatarUrl, verified, campus]
+      properties:
+        id: { type: string }
+        handle: { type: string }
+        displayName: { type: string }
+        avatarUrl: { type: string, format: uri, nullable: true }
+        verified: { type: boolean, description: Server-truth verification entitlement }
+        campus: { type: string, nullable: true }
+    Clip:
+      type: object
+      required:
+        [
+          id,
+          creator,
+          caption,
+          hlsUrl,
+          posterUrl,
+          durationSec,
+          width,
+          height,
+          stats,
+          viewer,
+          battleId,
+        ]
+      properties:
+        id: { type: string }
+        creator: { $ref: "#/components/schemas/Creator" }
+        caption: { type: string }
+        hlsUrl: { type: string, format: uri, description: Signed, expiring master HLS playlist }
+        posterUrl: { type: string, format: uri }
+        durationSec: { type: number }
+        width: { type: integer }
+        height: { type: integer }
+        stats:
+          type: object
+          required: [likes, comments, shares, plays]
+          properties:
+            likes: { type: integer }
+            comments: { type: integer }
+            shares: { type: integer }
+            plays: { type: integer }
+        viewer:
+          type: object
+          required: [liked, following]
+          properties:
+            liked: { type: boolean }
+            following: { type: boolean }
+        battleId: { type: string, nullable: true }
+    FeedPage:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Clip" }
+        nextCursor: { type: string, nullable: true }
+    EngagementAction:
+      oneOf:
+        - type: object
+          required: [kind, clipId, value]
+          properties:
+            kind: { type: string, enum: [like] }
+            clipId: { type: string }
+            value: { type: boolean }
+        - type: object
+          required: [kind, creatorId, value]
+          properties:
+            kind: { type: string, enum: [follow] }
+            creatorId: { type: string }
+            value: { type: boolean }
+        - type: object
+          required: [kind, clipId, body, localId]
+          properties:
+            kind: { type: string, enum: [comment] }
+            clipId: { type: string }
+            body: { type: string }
+            localId: { type: string }
+    EngagementResult:
+      type: object
+      required: [clipId, liked, likeCount]
+      properties:
+        clipId: { type: string }
+        liked: { type: boolean }
+        likeCount: { type: integer }
