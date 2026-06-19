@@ -22,6 +22,8 @@ import {
   searchResultSchema,
   hashtagSchema,
   ambassadorSchema,
+  scoutTalentSchema,
+  scoutTalentDetailSchema,
   type EngagementAction,
   type FeedKind,
   type TipResult,
@@ -34,6 +36,8 @@ import {
   type SearchResult,
   type Hashtag,
   type Ambassador,
+  type ScoutTalent,
+  type ScoutTalentDetail,
   type FeedPage,
   type EngagementResult,
   type UploadTicket,
@@ -241,6 +245,26 @@ export const api = {
   ambassador: {
     get(signal?: AbortSignal): Promise<Ambassador> {
       return request(`/v1/ambassador`, ambassadorSchema, { signal });
+    },
+  },
+  scout: {
+    /** Talent Intelligence search/filter (PRD §6.9). Enterprise RBAC enforced server-side. */
+    search(
+      params: { q?: string; campus?: string; genre?: string; minOverall?: number },
+      signal?: AbortSignal,
+    ): Promise<ScoutTalent[]> {
+      const qs = new URLSearchParams();
+      if (params.q) qs.set("q", params.q);
+      if (params.campus) qs.set("campus", params.campus);
+      if (params.genre) qs.set("genre", params.genre);
+      if (params.minOverall) qs.set("minOverall", String(params.minOverall));
+      const suffix = qs.toString() ? `?${qs.toString()}` : "";
+      return request(`/v1/scout/talents${suffix}`, z.array(scoutTalentSchema), { signal });
+    },
+    talent(handle: string, signal?: AbortSignal): Promise<ScoutTalentDetail> {
+      return request(`/v1/scout/talents/${encodeURIComponent(handle)}`, scoutTalentDetailSchema, {
+        signal,
+      });
     },
   },
   push: {

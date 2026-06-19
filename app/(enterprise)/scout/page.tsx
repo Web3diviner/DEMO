@@ -1,20 +1,12 @@
-import { Search } from "lucide-react";
+import { ScoutDashboard } from "@/components/scout/scout-dashboard";
 
 /**
- * Scout dashboard — placeholder for Talent Intelligence (search / filter / export). Built against
- * the enterprise contract once the searchable schema + privacy boundary are confirmed.
+ * Talent Intelligence (PRD §6.9) — the enterprise scouting product. Explainable composite scores
+ * (Talent Growth, Virality, Fan Loyalty, Campus Influence, Label/Sponsor Readiness) with
+ * search/filter/export. Enterprise auth + RBAC enforced server-side; this is the dashboard UI.
  */
-export const metadata = { title: "Scout" };
+export const metadata = { title: "Talent Intelligence" };
 
 export default function ScoutPage() {
-  return (
-    <div>
-      <h1 className="flex items-center gap-2 text-xl font-semibold">
-        <Search className="h-5 w-5" aria-hidden /> Talent Intelligence
-      </h1>
-      <p className="text-muted mt-2 text-sm">
-        Search and filter campus talent; export shortlists. Enterprise access only.
-      </p>
-    </div>
-  );
+  return <ScoutDashboard />;
 }

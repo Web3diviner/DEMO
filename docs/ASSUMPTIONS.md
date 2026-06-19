@@ -43,9 +43,10 @@ Legend: ✅ confirmed by PRD · 🟡 PRD says TBD / needs a value · 🔵 deferr
 
 ## Deferred (post-MVP, per §11/§12)
 
+- ✅ Enterprise scouting dashboard / Talent Intelligence (§6.9) — built ahead of phase (search,
+  explainable composites, export).
 - 🔵 Marketplace, Fan Clubs / premium subscriptions (ERC-5643), Events/NFT tickets, transferable
-  asset NFTs, crypto on-ramp, multi-campus, advanced two-tower ML ranking, enterprise scouting
-  dashboard (Phase 3). Route groups/stubs exist; full builds gated by phase + feature flags.
+  asset NFTs, crypto on-ramp, multi-campus, advanced two-tower ML ranking. Gated by phase + flags.
 
 ## Frontend follow-ups
 

@@ -252,6 +252,37 @@ export const dmThreadDetailSchema = z.object({
   messages: z.array(dmMessageSchema),
 });
 
+/* ── Talent Intelligence (PRD §6.9 — the scout data product) ────────────────────
+   Explainable composite scores (NOT one opaque number): each 0–100. Powers the
+   enterprise search/filter/export surface. */
+export const talentScoresSchema = z.object({
+  growth: z.number(), // Talent Growth
+  virality: z.number(), // Virality
+  loyalty: z.number(), // Fan Loyalty
+  campusInfluence: z.number(), // Campus Influence
+  readiness: z.number(), // Label/Sponsor Readiness
+});
+
+export const scoutTalentSchema = z.object({
+  id: z.string(),
+  handle: z.string(),
+  displayName: z.string(),
+  campus: z.string(),
+  genre: z.string(),
+  verified: z.boolean(),
+  followers: z.number().int(),
+  scores: talentScoresSchema,
+  /** Headline composite, derived from the components above. */
+  overall: z.number(),
+});
+
+export const scoutTalentDetailSchema = scoutTalentSchema.extend({
+  /** Plain-language factors behind the scores (explainability). */
+  factors: z.array(z.object({ label: z.string(), detail: z.string() })),
+  /** Recent overall-score trend (oldest → newest) for a sparkline. */
+  trend: z.array(z.number()),
+});
+
 /* ── Moderation (PRD §10.3 — launch-blocking review queue) ──────────────────── */
 export const moderationItemSchema = z.object({
   id: z.string(),
@@ -374,6 +405,9 @@ export type Hashtag = z.infer<typeof hashtagSchema>;
 export type SearchClip = z.infer<typeof searchClipSchema>;
 export type SearchResult = z.infer<typeof searchResultSchema>;
 export type Ambassador = z.infer<typeof ambassadorSchema>;
+export type TalentScores = z.infer<typeof talentScoresSchema>;
+export type ScoutTalent = z.infer<typeof scoutTalentSchema>;
+export type ScoutTalentDetail = z.infer<typeof scoutTalentDetailSchema>;
 export type DmParticipant = z.infer<typeof dmParticipantSchema>;
 export type DmMessage = z.infer<typeof dmMessageSchema>;
 export type DmThread = z.infer<typeof dmThreadSchema>;

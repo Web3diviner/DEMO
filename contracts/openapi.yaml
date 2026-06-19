@@ -340,6 +340,33 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Ambassador" }
+  /v1/scout/talents:
+    get:
+      summary: Talent Intelligence search/filter (PRD §6.9) — enterprise RBAC
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string } }
+        - { name: campus, in: query, required: false, schema: { type: string } }
+        - { name: genre, in: query, required: false, schema: { type: string } }
+        - { name: minOverall, in: query, required: false, schema: { type: integer } }
+      responses:
+        "200":
+          description: Matching talents (explainable composite scores)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ScoutTalent" }
+  /v1/scout/talents/{handle}:
+    get:
+      summary: Explainable talent detail (score breakdown + trend)
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Talent detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScoutTalentDetail" }
   /v1/moderation/queue:
     get:
       summary: Staff review queue (PRD §10.3) — automated flags + user reports
@@ -711,6 +738,45 @@ components:
               id: { type: string }
               posterUrl: { type: string, format: uri }
               plays: { type: integer }
+    TalentScores:
+      type: object
+      required: [growth, virality, loyalty, campusInfluence, readiness]
+      properties:
+        growth: { type: number }
+        virality: { type: number }
+        loyalty: { type: number }
+        campusInfluence: { type: number }
+        readiness: { type: number }
+    ScoutTalent:
+      type: object
+      required: [id, handle, displayName, campus, genre, verified, followers, scores, overall]
+      properties:
+        id: { type: string }
+        handle: { type: string }
+        displayName: { type: string }
+        campus: { type: string }
+        genre: { type: string }
+        verified: { type: boolean }
+        followers: { type: integer }
+        scores: { $ref: "#/components/schemas/TalentScores" }
+        overall: { type: number }
+    ScoutTalentDetail:
+      allOf:
+        - { $ref: "#/components/schemas/ScoutTalent" }
+        - type: object
+          required: [factors, trend]
+          properties:
+            factors:
+              type: array
+              items:
+                type: object
+                required: [label, detail]
+                properties:
+                  label: { type: string }
+                  detail: { type: string }
+            trend:
+              type: array
+              items: { type: number }
     ModerationItem:
       type: object
       required:

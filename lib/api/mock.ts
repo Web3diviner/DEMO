@@ -254,6 +254,83 @@ function iso(secondsFromNow: number) {
   return new Date(Date.now() + secondsFromNow * 1000).toISOString();
 }
 
+// ── Talent Intelligence / scout (PRD §6.9) ───────────────────────────────────
+const CAMPUSES = ["UNILAG", "UI Ibadan", "ABU Zaria", "OAU", "UNN"];
+const GENRES = ["Afrobeats", "Rap", "Gospel", "R&B", "Amapiano"];
+const NAMES = [
+  "Ada",
+  "Tunde",
+  "Zainab",
+  "Bola",
+  "Ife",
+  "Musa",
+  "Chidi",
+  "Ngozi",
+  "Femi",
+  "Halima",
+  "Emeka",
+  "Sade",
+];
+
+function scoutTalent(i: number) {
+  // Deterministic pseudo-scores so results are stable across calls.
+  const s = (base: number) => Math.max(20, Math.min(99, Math.round(base + ((i * 17) % 23) - 11)));
+  const scores = {
+    growth: s(78 - i * 2),
+    virality: s(72 + i),
+    loyalty: s(65 + ((i * 3) % 25)),
+    campusInfluence: s(80 - ((i * 5) % 30)),
+    readiness: s(60 + ((i * 7) % 30)),
+  };
+  const overall = Math.round(
+    scores.growth * 0.25 +
+      scores.virality * 0.25 +
+      scores.loyalty * 0.2 +
+      scores.campusInfluence * 0.15 +
+      scores.readiness * 0.15,
+  );
+  const name = NAMES[i % NAMES.length];
+  return {
+    id: `t_${i}`,
+    handle: `${name.toLowerCase()}.${["beats", "flow", "moves", "live", "music"][i % 5]}`,
+    displayName: name,
+    campus: CAMPUSES[i % CAMPUSES.length],
+    genre: GENRES[i % GENRES.length],
+    verified: i % 3 !== 0,
+    followers: 2000 + i * 1840,
+    scores,
+    overall,
+  };
+}
+
+const SCOUT_TALENTS = Array.from({ length: 12 }, (_, i) => scoutTalent(i)).sort(
+  (a, b) => b.overall - a.overall,
+);
+
+function scoutDetail(handle: string) {
+  const t = SCOUT_TALENTS.find((x) => x.handle === handle) ?? SCOUT_TALENTS[0];
+  return {
+    ...t,
+    factors: [
+      { label: "Talent Growth", detail: `Followers up ${30 + (t.followers % 40)}% in 30 days.` },
+      {
+        label: "Virality",
+        detail: `Median completion ${55 + (t.overall % 30)}%; high reshare rate.`,
+      },
+      {
+        label: "Fan Loyalty",
+        detail: `${20 + (t.overall % 25)}% of viewers are repeat supporters.`,
+      },
+      { label: "Campus Influence", detail: `Top-${1 + (t.overall % 5)} creator at ${t.campus}.` },
+      {
+        label: "Label/Sponsor Readiness",
+        detail: "Consistent posting cadence; clean moderation history.",
+      },
+    ],
+    trend: Array.from({ length: 8 }, (_, k) => Math.max(20, Math.min(99, t.overall - 18 + k * 2))),
+  };
+}
+
 // ── Moderation queue (PRD §10.3) ─────────────────────────────────────────────
 type MockModItem = {
   id: string;
@@ -534,6 +611,26 @@ export async function handleMock(
   if (/^\/v1\/charts\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
     const board = route.split("/")[3];
     return chartFor(board);
+  }
+
+  if (route === "/v1/scout/talents" && (opts.method ?? "GET") === "GET") {
+    const p = new URLSearchParams(query);
+    const q = (p.get("q") ?? "").toLowerCase();
+    const campus = p.get("campus");
+    const genre = p.get("genre");
+    const minOverall = Number(p.get("minOverall") ?? 0);
+    return SCOUT_TALENTS.filter(
+      (t) =>
+        (!q || t.handle.toLowerCase().includes(q) || t.displayName.toLowerCase().includes(q)) &&
+        (!campus || t.campus === campus) &&
+        (!genre || t.genre === genre) &&
+        t.overall >= minOverall,
+    );
+  }
+
+  if (/^\/v1\/scout\/talents\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
+    const handle = decodeURIComponent(route.split("/")[4]);
+    return scoutDetail(handle);
   }
 
   if (route === "/v1/moderation/queue" && (opts.method ?? "GET") === "GET") {
