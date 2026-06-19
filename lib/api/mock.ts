@@ -356,6 +356,31 @@ export async function handleMock(
     return TRENDS;
   }
 
+  if (route === "/v1/ambassador" && (opts.method ?? "GET") === "GET") {
+    return {
+      code: "ADA-UNILAG",
+      referralUrl: "https://demo.example/join?ref=ADA-UNILAG",
+      stats: {
+        invited: 86,
+        joined: 41,
+        activated: 23,
+        rewards: { currency: "CREDITS" as const, minor: 1150 },
+      },
+      tier: {
+        name: "Rising Rep",
+        activated: 23,
+        nextAt: 30,
+        nextReward: { currency: "CREDITS" as const, minor: 500 },
+      },
+      leaderboard: [
+        { rank: 1, handle: "bola.reps", displayName: "Bola", activations: 38, you: false },
+        { rank: 2, handle: "you", displayName: "You", activations: 23, you: true },
+        { rank: 3, handle: "ife.campus", displayName: "Ife", activations: 19, you: false },
+        { rank: 4, handle: "musa.g", displayName: "Musa", activations: 12, you: false },
+      ],
+    };
+  }
+
   if (route === "/v1/search" && (opts.method ?? "GET") === "GET") {
     const q = new URLSearchParams(query).get("q") ?? "";
     return searchFor(q);

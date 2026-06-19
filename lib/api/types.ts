@@ -190,6 +190,37 @@ export const searchResultSchema = z.object({
   clips: z.array(searchClipSchema),
 });
 
+/* ── Ambassadors (PRD §6.10 — growth) ──────────────────────────────────────────
+   Campus reps with referral tools + gamified rewards. Reward is earned on
+   *verified activity*, not raw sign-ups; referrals are de-duplicated. */
+export const ambassadorSchema = z.object({
+  /** Shareable referral code + link. */
+  code: z.string(),
+  referralUrl: z.string().url(),
+  stats: z.object({
+    invited: z.number().int(), // links sent / opened
+    joined: z.number().int(), // accounts created (deduped)
+    activated: z.number().int(), // verified + active — what actually pays out
+    rewards: moneySchema, // CREDITS earned
+  }),
+  /** Gamified tier progress, measured in activations. */
+  tier: z.object({
+    name: z.string(),
+    activated: z.number().int(),
+    nextAt: z.number().int(),
+    nextReward: moneySchema, // CREDITS at next tier
+  }),
+  leaderboard: z.array(
+    z.object({
+      rank: z.number().int(),
+      handle: z.string(),
+      displayName: z.string(),
+      activations: z.number().int(),
+      you: z.boolean(),
+    }),
+  ),
+});
+
 /* ── Direct messages (PRD §11 — basic DMs) ─────────────────────────────────── */
 export const dmParticipantSchema = z.object({
   handle: z.string(),
@@ -342,6 +373,7 @@ export type TipResult = z.infer<typeof tipResultSchema>;
 export type Hashtag = z.infer<typeof hashtagSchema>;
 export type SearchClip = z.infer<typeof searchClipSchema>;
 export type SearchResult = z.infer<typeof searchResultSchema>;
+export type Ambassador = z.infer<typeof ambassadorSchema>;
 export type DmParticipant = z.infer<typeof dmParticipantSchema>;
 export type DmMessage = z.infer<typeof dmMessageSchema>;
 export type DmThread = z.infer<typeof dmThreadSchema>;

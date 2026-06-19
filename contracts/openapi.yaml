@@ -289,6 +289,15 @@ paths:
               schema:
                 type: array
                 items: { $ref: "#/components/schemas/Hashtag" }
+  /v1/ambassador:
+    get:
+      summary: Ambassador dashboard (PRD §6.10) — referral tools + gamified rewards
+      responses:
+        "200":
+          description: Ambassador state
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ambassador" }
   /v1/moderation/queue:
     get:
       summary: Staff review queue (PRD §10.3) — automated flags + user reports
@@ -608,6 +617,39 @@ components:
       properties:
         tag: { type: string }
         posts: { type: integer }
+    Ambassador:
+      type: object
+      required: [code, referralUrl, stats, tier, leaderboard]
+      properties:
+        code: { type: string }
+        referralUrl: { type: string, format: uri }
+        stats:
+          type: object
+          required: [invited, joined, activated, rewards]
+          properties:
+            invited: { type: integer }
+            joined: { type: integer }
+            activated: { type: integer, description: Verified + active referrals (what pays out) }
+            rewards: { $ref: "#/components/schemas/Money" }
+        tier:
+          type: object
+          required: [name, activated, nextAt, nextReward]
+          properties:
+            name: { type: string }
+            activated: { type: integer }
+            nextAt: { type: integer }
+            nextReward: { $ref: "#/components/schemas/Money" }
+        leaderboard:
+          type: array
+          items:
+            type: object
+            required: [rank, handle, displayName, activations, you]
+            properties:
+              rank: { type: integer }
+              handle: { type: string }
+              displayName: { type: string }
+              activations: { type: integer }
+              you: { type: boolean }
     SearchResult:
       type: object
       required: [creators, hashtags, clips]

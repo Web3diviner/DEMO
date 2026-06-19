@@ -34,6 +34,8 @@ This repo is the **frontend foundation** (contract-first; no backend required to
   severity triage, content/user actions (approve/remove/ban/escalate), optimistic resolve
 - ✅ **Search & hashtags** (§6.1): debounced, data-frugal; trending tags, creator/hashtag/clip
   results; public `/u/[handle]` Talent Hub
+- ✅ **Ambassador** (§6.10): referral code/share, verified-activity reward framing, tier progress,
+  campus leaderboard
 - ✅ Route groups + RBAC mirror for `(marketing) (app) (admin) (enterprise)`
 - ✅ Security headers / CSP, typed+validated API client, analytics event contract, feature flags
 - ✅ Tests (Vitest unit + component, Playwright e2e) and CI

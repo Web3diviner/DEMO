@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { BadgeCheck, Play, Settings, Swords } from "lucide-react";
+import { BadgeCheck, ChevronRight, Megaphone, Play, Settings, Swords } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 
@@ -78,6 +78,21 @@ export function TalentHub({ handle }: { handle: string }) {
           Message
         </Link>
       </div>
+
+      {/* Ambassador entry */}
+      <Link
+        href="/ambassador"
+        className="border-line bg-surface mt-4 flex items-center gap-3 rounded-lg border p-3 active:scale-[0.99]"
+      >
+        <span className="bg-brand/15 text-brand grid h-9 w-9 shrink-0 place-items-center rounded-full">
+          <Megaphone className="h-4 w-4" aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold">Become a campus ambassador</span>
+          <span className="text-subtle block text-xs">Invite your campus, earn Credits.</span>
+        </span>
+        <ChevronRight className="text-subtle h-4 w-4 shrink-0" aria-hidden />
+      </Link>
 
       {/* Clip grid */}
       <h2 className="text-muted mt-6 mb-2 text-sm font-medium">Clips</h2>

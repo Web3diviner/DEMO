@@ -21,6 +21,7 @@ import {
   moderationActionResultSchema,
   searchResultSchema,
   hashtagSchema,
+  ambassadorSchema,
   type EngagementAction,
   type FeedKind,
   type TipResult,
@@ -32,6 +33,7 @@ import {
   type ModerationActionResult,
   type SearchResult,
   type Hashtag,
+  type Ambassador,
   type FeedPage,
   type EngagementResult,
   type UploadTicket,
@@ -234,6 +236,11 @@ export const api = {
     },
     trends(signal?: AbortSignal): Promise<Hashtag[]> {
       return request(`/v1/trends`, z.array(hashtagSchema), { signal });
+    },
+  },
+  ambassador: {
+    get(signal?: AbortSignal): Promise<Ambassador> {
+      return request(`/v1/ambassador`, ambassadorSchema, { signal });
     },
   },
   dms: {
