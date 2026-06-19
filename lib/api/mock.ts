@@ -84,6 +84,54 @@ function buildPage(cursor: string | null): FeedPage {
 // Track liked state in-memory so optimistic commits reconcile believably.
 const likeState = new Map<string, boolean>();
 
+// ── Wallet + top-up simulation ──────────────────────────────────────────────
+// Server-truth balances live here. Fan Credits and creator earnings stay distinct.
+const wallet = {
+  credits: { currency: "CREDITS" as const, minor: 1240 },
+  earnings: { currency: "NGN" as const, minor: 875_000 },
+};
+
+const CREDIT_PACKS = [
+  { id: "pack_100", credits: 100, price: { currency: "NGN" as const, minor: 50_000 }, badge: null },
+  {
+    id: "pack_550",
+    credits: 550,
+    price: { currency: "NGN" as const, minor: 250_000 },
+    badge: "Most popular",
+  },
+  {
+    id: "pack_1200",
+    credits: 1200,
+    price: { currency: "NGN" as const, minor: 500_000 },
+    badge: "Best value",
+  },
+];
+
+// Pending top-ups, keyed by reference. The "webhook" confirms after a short delay — the client must
+// poll and only sees the balance move once status flips to success (never optimistically).
+const topUps = new Map<string, { credits: number; price: number; confirmAt: number }>();
+
+function commentsFor(clipId: string) {
+  const authors = [
+    { handle: "kemi.vibes", displayName: "Kemi", verified: false },
+    { handle: "demola", displayName: "Demola", verified: true },
+    { handle: "amaka.j", displayName: "Amaka", verified: false },
+  ];
+  const bodies = [
+    "This is fire 🔥🔥",
+    "How are you this talented??",
+    "On repeat ngl",
+    "Campus star 🌟",
+  ];
+  return Array.from({ length: 4 }, (_, k) => ({
+    id: `${clipId}_cm_${k}`,
+    author: authors[k % authors.length],
+    body: bodies[k % bodies.length],
+    createdAt: new Date(Date.now() - k * 3_600_000).toISOString(),
+    likeCount: 30 - k * 7,
+  }));
+}
+
 export async function handleMock(
   path: string,
   opts: { method?: string; body?: unknown },
@@ -151,6 +199,47 @@ export async function handleMock(
       totalLikes: 248_900,
       clips,
     };
+  }
+
+  if (route === "/v1/wallet" && (opts.method ?? "GET") === "GET") {
+    return wallet;
+  }
+
+  if (route === "/v1/credits/packs" && (opts.method ?? "GET") === "GET") {
+    return CREDIT_PACKS;
+  }
+
+  if (route === "/v1/credits/topup" && opts.method === "POST") {
+    const { packId } = opts.body as { packId: string };
+    const pack = CREDIT_PACKS.find((p) => p.id === packId) ?? CREDIT_PACKS[0];
+    const reference = `ref_${Date.now().toString(36)}`;
+    // Simulate the Paystack webhook landing ~2.5s after checkout.
+    topUps.set(reference, {
+      credits: pack.credits,
+      price: pack.price.minor,
+      confirmAt: Date.now() + 2500,
+    });
+    return { reference, accessCode: `ac_mock_${reference}`, price: pack.price };
+  }
+
+  if (route.startsWith("/v1/credits/topup/") && (opts.method ?? "GET") === "GET") {
+    const reference = decodeURIComponent(route.replace("/v1/credits/topup/", ""));
+    const intent = topUps.get(reference);
+    if (!intent) return { reference, status: "failed", wallet: null };
+    if (Date.now() < intent.confirmAt) {
+      return { reference, status: "pending", wallet: null };
+    }
+    // Webhook "confirmed": credit the wallet (server truth) and report success once.
+    if (topUps.has(reference)) {
+      wallet.credits = { ...wallet.credits, minor: wallet.credits.minor + intent.credits };
+      topUps.delete(reference);
+    }
+    return { reference, status: "success", wallet };
+  }
+
+  if (/^\/v1\/clips\/[^/]+\/comments$/.test(route) && (opts.method ?? "GET") === "GET") {
+    const clipId = route.split("/")[3];
+    return { items: commentsFor(clipId), nextCursor: null, total: 42 };
   }
 
   throw new Error(`Mock: unhandled route ${path}`);

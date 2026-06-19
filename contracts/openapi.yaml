@@ -114,12 +114,68 @@ paths:
           description: Wallet balances
           content:
             application/json:
+              schema: { $ref: "#/components/schemas/Wallet" }
+  /v1/credits/packs:
+    get:
+      summary: Purchasable Credit packs (server-quoted prices)
+      responses:
+        "200":
+          description: Packs
+          content:
+            application/json:
               schema:
-                type: object
-                required: [credits, earnings]
-                properties:
-                  credits: { $ref: "#/components/schemas/Money" }
-                  earnings: { $ref: "#/components/schemas/Money" }
+                type: array
+                items: { $ref: "#/components/schemas/CreditPack" }
+  /v1/credits/topup:
+    post:
+      summary: Create a top-up intent; returns a Paystack reference for the inline popup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [packId]
+              properties:
+                packId: { type: string }
+      responses:
+        "200":
+          description: Top-up intent
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopUpIntent" }
+  /v1/credits/topup/{reference}:
+    get:
+      summary: Top-up status — `success` is set from the Paystack WEBHOOK, never the client
+      parameters:
+        - name: reference
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Status (poll until non-pending)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopUpStatus" }
+  /v1/clips/{clipId}/comments:
+    get:
+      summary: Comments for a clip (cursor-paginated)
+      parameters:
+        - name: clipId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: cursor
+          in: query
+          required: false
+          schema: { type: string, nullable: true }
+      responses:
+        "200":
+          description: A page of comments
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CommentPage" }
 components:
   schemas:
     Money:
@@ -225,6 +281,61 @@ components:
           type: object
           additionalProperties: { type: string }
         expiresAt: { type: string, format: date-time }
+    Wallet:
+      type: object
+      required: [credits, earnings]
+      properties:
+        credits: { $ref: "#/components/schemas/Money" }
+        earnings: { $ref: "#/components/schemas/Money" }
+    CreditPack:
+      type: object
+      required: [id, credits, price, badge]
+      properties:
+        id: { type: string }
+        credits: { type: integer }
+        price: { $ref: "#/components/schemas/Money" }
+        badge: { type: string, nullable: true }
+    TopUpIntent:
+      type: object
+      required: [reference, accessCode, price]
+      properties:
+        reference: { type: string }
+        accessCode: { type: string, description: Paystack access code for the inline popup }
+        price: { $ref: "#/components/schemas/Money" }
+    TopUpStatus:
+      type: object
+      required: [reference, status, wallet]
+      properties:
+        reference: { type: string }
+        status: { type: string, enum: [pending, success, failed] }
+        wallet:
+          oneOf:
+            - { $ref: "#/components/schemas/Wallet" }
+            - { type: "null" }
+    Comment:
+      type: object
+      required: [id, author, body, createdAt, likeCount]
+      properties:
+        id: { type: string }
+        author:
+          type: object
+          required: [handle, displayName, verified]
+          properties:
+            handle: { type: string }
+            displayName: { type: string }
+            verified: { type: boolean }
+        body: { type: string }
+        createdAt: { type: string, format: date-time }
+        likeCount: { type: integer }
+    CommentPage:
+      type: object
+      required: [items, nextCursor, total]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Comment" }
+        nextCursor: { type: string, nullable: true }
+        total: { type: integer }
     Profile:
       type: object
       required: [creator, bio, followerCount, followingCount, totalLikes, clips]

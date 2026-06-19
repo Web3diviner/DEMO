@@ -6,7 +6,7 @@ import { Gauge, Wifi } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { Clip } from "@/lib/api/types";
 import { useDataPolicy } from "@/lib/hooks/use-data-policy";
-import { EngagementQueue, bindQueueToLifecycle } from "@/lib/queue/engagement-queue";
+import { getEngagementQueue } from "@/lib/queue/shared";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils/cn";
 import { FeedItem } from "./feed-item";
@@ -29,15 +29,8 @@ export function FeedScroller() {
     Record<string, { liked: boolean; likes: number }>
   >({});
 
-  // Created once via the lazy initializer; stable for the component's lifetime.
-  const [queue] = React.useState(
-    () =>
-      new EngagementQueue(async (action) => {
-        await api.engagement.commit(action);
-      }),
-  );
-
-  React.useEffect(() => bindQueueToLifecycle(queue), [queue]);
+  // Process-wide singleton — shared with the comment sheet (one persisted queue, one drainer).
+  const queue = getEngagementQueue();
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } = useInfiniteQuery({
     queryKey: ["feed"],

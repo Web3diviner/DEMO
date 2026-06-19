@@ -6,6 +6,7 @@ import type { Clip } from "@/lib/api/types";
 import type { DataPolicy } from "@/lib/connection";
 import { HlsPlayer } from "./hls-player";
 import { EngagementBar } from "./engagement-bar";
+import { CommentSheet } from "./comment-sheet";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils/cn";
 
@@ -26,6 +27,7 @@ type Props = {
 
 export function FeedItem({ clip, active, preload, policy, position, onLike }: Props) {
   const dwellStart = React.useRef<number | null>(null);
+  const [commentsOpen, setCommentsOpen] = React.useState(false);
 
   // Impression + dwell instrumentation feeds the recommendation store.
   React.useEffect(() => {
@@ -81,9 +83,7 @@ export function FeedItem({ clip, active, preload, policy, position, onLike }: Pr
           commentCount={clip.stats.comments}
           shareCount={clip.stats.shares}
           onLike={() => onLike(clip)}
-          onComment={() => {
-            /* opens comment sheet — wired with the comments feature */
-          }}
+          onComment={() => setCommentsOpen(true)}
           onShare={() => {
             track({ type: "engagement", action: "share", clipId: clip.id });
             void navigator.share?.({ text: clip.caption }).catch(() => {});
@@ -109,6 +109,8 @@ export function FeedItem({ clip, active, preload, policy, position, onLike }: Pr
         </div>
         <p className={cn("mt-2 line-clamp-2 text-sm leading-snug drop-shadow")}>{clip.caption}</p>
       </div>
+
+      <CommentSheet clipId={clip.id} open={commentsOpen} onClose={() => setCommentsOpen(false)} />
     </article>
   );
 }

@@ -19,6 +19,9 @@ This repo is the **frontend foundation** (contract-first; no backend required to
 - ✅ **Resumable upload** (tus): direct-to-storage signed ticket, data-aware chunking, pause/resume,
   resume-after-reload, Wi-Fi-only pre-compression hook
 - ✅ **Talent Hub** profile (stats + clip grid) and **creator verification** onboarding ($1)
+- ✅ **Top-up flow** (Paystack Inline): server-quoted packs, pending→webhook-confirmed, no
+  optimistic credit; live wallet with Credits/earnings kept distinct
+- ✅ **Comments** sheet (accessible bottom-sheet primitive) with optimistic posting via the queue
 - ✅ Route groups + RBAC mirror for `(marketing) (app) (admin) (enterprise)`
 - ✅ Security headers / CSP, typed+validated API client, analytics event contract, feature flags
 - ✅ Tests (Vitest unit + component, Playwright e2e) and CI

@@ -106,6 +106,59 @@ export const profileSchema = z.object({
   ),
 });
 
+/** Wallet — fan Credits (spendable, non-cashable) kept DISTINCT from creator earnings. */
+export const walletSchema = z.object({
+  credits: moneySchema, // CREDITS
+  earnings: moneySchema, // NGN/USD, withdrawable
+});
+
+/** A purchasable Credit pack. Prices are server-quoted (NGN), never computed client-side. */
+export const creditPackSchema = z.object({
+  id: z.string(),
+  credits: z.number().int(),
+  price: moneySchema, // NGN
+  /** Optional marketing tag e.g. "Most popular". */
+  badge: z.string().nullable(),
+});
+
+/** A top-up intent created server-side; the client hands `reference` to Paystack Inline. */
+export const topUpIntentSchema = z.object({
+  reference: z.string(),
+  /** Paystack access code for the inline popup. */
+  accessCode: z.string(),
+  /** Amount to charge, echoed back for display. */
+  price: moneySchema,
+});
+
+/**
+ * Top-up status. The balance only moves once this reports `success` — which the backend sets from
+ * the Paystack WEBHOOK, never from the client. `pending` is the honest in-between state.
+ */
+export const topUpStatusSchema = z.object({
+  reference: z.string(),
+  status: z.enum(["pending", "success", "failed"]),
+  /** Present once confirmed, so the UI can show the new balance from server truth. */
+  wallet: walletSchema.nullable(),
+});
+
+export const commentSchema = z.object({
+  id: z.string(),
+  author: z.object({
+    handle: z.string(),
+    displayName: z.string(),
+    verified: z.boolean(),
+  }),
+  body: z.string(),
+  createdAt: z.string(),
+  likeCount: z.number().int(),
+});
+
+export const commentPageSchema = z.object({
+  items: z.array(commentSchema),
+  nextCursor: z.string().nullable(),
+  total: z.number().int(),
+});
+
 export type Money = z.infer<typeof moneySchema>;
 export type Rendition = z.infer<typeof renditionSchema>;
 export type Creator = z.infer<typeof creatorSchema>;
@@ -115,6 +168,12 @@ export type EngagementResult = z.infer<typeof engagementResultSchema>;
 export type UploadTicket = z.infer<typeof uploadTicketSchema>;
 export type PublishResult = z.infer<typeof publishResultSchema>;
 export type Profile = z.infer<typeof profileSchema>;
+export type Wallet = z.infer<typeof walletSchema>;
+export type CreditPack = z.infer<typeof creditPackSchema>;
+export type TopUpIntent = z.infer<typeof topUpIntentSchema>;
+export type TopUpStatus = z.infer<typeof topUpStatusSchema>;
+export type Comment = z.infer<typeof commentSchema>;
+export type CommentPage = z.infer<typeof commentPageSchema>;
 
 /** Engagement actions that flow through the optimistic queue. */
 export type EngagementAction =

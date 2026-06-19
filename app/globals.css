@@ -213,3 +213,21 @@
     border: 0;
   }
 }
+
+/* Sheet / overlay motion. Disabled under prefers-reduced-motion via the global override above. */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

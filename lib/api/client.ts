@@ -5,12 +5,22 @@ import {
   uploadTicketSchema,
   publishResultSchema,
   profileSchema,
+  walletSchema,
+  creditPackSchema,
+  topUpIntentSchema,
+  topUpStatusSchema,
+  commentPageSchema,
   type EngagementAction,
   type FeedPage,
   type EngagementResult,
   type UploadTicket,
   type PublishResult,
   type Profile,
+  type Wallet,
+  type CreditPack,
+  type TopUpIntent,
+  type TopUpStatus,
+  type CommentPage,
 } from "./types";
 
 /**
@@ -124,6 +134,38 @@ export const api = {
   profiles: {
     get(handle: string, signal?: AbortSignal): Promise<Profile> {
       return request(`/v1/profiles/${encodeURIComponent(handle)}`, profileSchema, { signal });
+    },
+  },
+  wallet: {
+    get(signal?: AbortSignal): Promise<Wallet> {
+      return request(`/v1/wallet`, walletSchema, { signal });
+    },
+  },
+  credits: {
+    packs(signal?: AbortSignal): Promise<CreditPack[]> {
+      return request(`/v1/credits/packs`, z.array(creditPackSchema), { signal });
+    },
+    /** Create a server-side top-up intent; returns the Paystack reference to hand to the popup. */
+    createTopUp(packId: string): Promise<TopUpIntent> {
+      return request(`/v1/credits/topup`, topUpIntentSchema, {
+        method: "POST",
+        body: { packId },
+        idempotencyKey: `topup:${packId}:${Date.now()}`,
+      });
+    },
+    /** Poll until the backend confirms the Paystack webhook. Balance moves only on `success`. */
+    topUpStatus(reference: string, signal?: AbortSignal): Promise<TopUpStatus> {
+      return request(`/v1/credits/topup/${encodeURIComponent(reference)}`, topUpStatusSchema, {
+        signal,
+      });
+    },
+  },
+  comments: {
+    list(clipId: string, cursor: string | null, signal?: AbortSignal): Promise<CommentPage> {
+      const qs = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+      return request(`/v1/clips/${encodeURIComponent(clipId)}/comments${qs}`, commentPageSchema, {
+        signal,
+      });
     },
   },
 };
