@@ -40,6 +40,8 @@ This repo is the **frontend foundation** (contract-first; no backend required to
   push + data-saver toggles (SW already handles `push`/`notificationclick`)
 - ✅ **Talent Intelligence** (§6.9, enterprise): search/filter, explainable composite scores
   (5 components), per-talent breakdown + trend, CSV export
+- ✅ **Marketplace** (§6.7, flag-gated): listings by category, digital + physical goods, Credit-funded
+  checkout (server-truth; digital delivers on confirm, physical collects fulfilment) + feature flags
 - ✅ Route groups + RBAC mirror for `(marketing) (app) (admin) (enterprise)`
 - ✅ Security headers / CSP, typed+validated API client, analytics event contract, feature flags
 - ✅ Tests (Vitest unit + component, Playwright e2e) and CI

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureAnalytics } from "@/lib/analytics";
+import { FlagsProvider } from "@/lib/flags-provider";
 
 /**
  * Client providers: server-state cache + service-worker registration + analytics consent.
@@ -33,5 +34,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     configureAnalytics({ consented: true });
   }, []);
 
-  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={client}>
+      <FlagsProvider>{children}</FlagsProvider>
+    </QueryClientProvider>
+  );
 }

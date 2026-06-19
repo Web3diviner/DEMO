@@ -340,6 +340,63 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Ambassador" }
+  /v1/market/listings:
+    get:
+      summary: Marketplace listings (PRD §6.7), optionally by category
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema: { type: string, enum: [beat, song, ticket, merch, service] }
+      responses:
+        "200":
+          description: Listings
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/MarketListing" }
+  /v1/market/listings/{id}:
+    get:
+      summary: A single listing with full detail
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Listing detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarketListingDetail" }
+  /v1/market/orders:
+    post:
+      summary: Buy a listing (Credits spend → escrow + commission in the ledger)
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [listingId]
+              properties:
+                listingId: { type: string }
+                shipping:
+                  type: object
+                  description: Required for physical goods (fulfilment metadata)
+                  properties:
+                    name: { type: string }
+                    address: { type: string }
+                    phone: { type: string }
+      responses:
+        "200":
+          description: Order (digital delivers immediately; physical is processing)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarketOrder" }
   /v1/scout/talents:
     get:
       summary: Talent Intelligence search/filter (PRD §6.9) — enterprise RBAC
@@ -738,6 +795,51 @@ components:
               id: { type: string }
               posterUrl: { type: string, format: uri }
               plays: { type: integer }
+    MarketListing:
+      type: object
+      required: [id, title, category, kind, price, creator, coverUrl, blurb, soldCount]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        category: { type: string, enum: [beat, song, ticket, merch, service] }
+        kind: { type: string, enum: [digital, physical] }
+        price: { $ref: "#/components/schemas/Money" }
+        creator:
+          type: object
+          required: [handle, displayName, verified]
+          properties:
+            handle: { type: string }
+            displayName: { type: string }
+            verified: { type: boolean }
+        coverUrl: { type: string, format: uri }
+        blurb: { type: string }
+        soldCount: { type: integer }
+    MarketListingDetail:
+      allOf:
+        - { $ref: "#/components/schemas/MarketListing" }
+        - type: object
+          required: [description, deliverableNote]
+          properties:
+            description: { type: string }
+            deliverableNote: { type: string }
+    MarketOrder:
+      type: object
+      required: [id, listingId, title, status, kind, deliverable, wallet]
+      properties:
+        id: { type: string }
+        listingId: { type: string }
+        title: { type: string }
+        status: { type: string, enum: [delivered, processing] }
+        kind: { type: string, enum: [digital, physical] }
+        deliverable:
+          oneOf:
+            - type: object
+              required: [type, note]
+              properties:
+                type: { type: string, enum: [download, unlock, ticket] }
+                note: { type: string }
+            - type: "null"
+        wallet: { $ref: "#/components/schemas/Wallet" }
     TalentScores:
       type: object
       required: [growth, virality, loyalty, campusInfluence, readiness]

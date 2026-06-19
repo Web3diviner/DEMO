@@ -24,6 +24,9 @@ import {
   ambassadorSchema,
   scoutTalentSchema,
   scoutTalentDetailSchema,
+  marketListingSchema,
+  marketListingDetailSchema,
+  marketOrderSchema,
   type EngagementAction,
   type FeedKind,
   type TipResult,
@@ -38,6 +41,10 @@ import {
   type Ambassador,
   type ScoutTalent,
   type ScoutTalentDetail,
+  type MarketListing,
+  type MarketListingDetail,
+  type MarketOrder,
+  type MarketCategory,
   type FeedPage,
   type EngagementResult,
   type UploadTicket,
@@ -264,6 +271,29 @@ export const api = {
     talent(handle: string, signal?: AbortSignal): Promise<ScoutTalentDetail> {
       return request(`/v1/scout/talents/${encodeURIComponent(handle)}`, scoutTalentDetailSchema, {
         signal,
+      });
+    },
+  },
+  market: {
+    /** Browse listings (PRD §6.7), optionally by category. */
+    listings(category: MarketCategory | "all", signal?: AbortSignal): Promise<MarketListing[]> {
+      const qs = category === "all" ? "" : `?category=${category}`;
+      return request(`/v1/market/listings${qs}`, z.array(marketListingSchema), { signal });
+    },
+    listing(id: string, signal?: AbortSignal): Promise<MarketListingDetail> {
+      return request(`/v1/market/listings/${encodeURIComponent(id)}`, marketListingDetailSchema, {
+        signal,
+      });
+    },
+    /** Buy a listing. Credits spend is server-truth; digital delivers on confirm. */
+    createOrder(input: {
+      listingId: string;
+      shipping?: { name: string; address: string; phone: string };
+    }): Promise<MarketOrder> {
+      return request(`/v1/market/orders`, marketOrderSchema, {
+        method: "POST",
+        body: input,
+        idempotencyKey: `order:${input.listingId}:${Date.now()}`,
       });
     },
   },

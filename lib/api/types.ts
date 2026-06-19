@@ -252,6 +252,50 @@ export const dmThreadDetailSchema = z.object({
   messages: z.array(dmMessageSchema),
 });
 
+/* ── Marketplace (PRD §6.7 — creator economy) ──────────────────────────────────
+   Beats, songs, tickets, merch, services. Listings/orders/escrow against the
+   ledger; platform commission is a fee entry. Digital goods deliver on
+   payment-confirm; physical merch carries fulfilment metadata. Purchases spend
+   Credits (server-truth), like every other money action. */
+export const marketCategorySchema = z.enum(["beat", "song", "ticket", "merch", "service"]);
+
+export const marketListingSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  category: marketCategorySchema,
+  /** Digital goods auto-deliver; physical needs shipping. */
+  kind: z.enum(["digital", "physical"]),
+  price: moneySchema, // CREDITS
+  creator: z.object({
+    handle: z.string(),
+    displayName: z.string(),
+    verified: z.boolean(),
+  }),
+  coverUrl: z.string().url(),
+  blurb: z.string(),
+  soldCount: z.number().int(),
+});
+
+export const marketListingDetailSchema = marketListingSchema.extend({
+  description: z.string(),
+  /** What the buyer receives (download, unlock, ticket, shipped item). */
+  deliverableNote: z.string(),
+});
+
+export const marketOrderSchema = z.object({
+  id: z.string(),
+  listingId: z.string(),
+  title: z.string(),
+  status: z.enum(["delivered", "processing"]),
+  kind: z.enum(["digital", "physical"]),
+  /** Present for delivered digital goods (a signed, expiring link or unlock token). */
+  deliverable: z
+    .object({ type: z.enum(["download", "unlock", "ticket"]), note: z.string() })
+    .nullable(),
+  /** Server-truth wallet after the Credit spend. */
+  wallet: walletSchema,
+});
+
 /* ── Talent Intelligence (PRD §6.9 — the scout data product) ────────────────────
    Explainable composite scores (NOT one opaque number): each 0–100. Powers the
    enterprise search/filter/export surface. */
@@ -405,6 +449,10 @@ export type Hashtag = z.infer<typeof hashtagSchema>;
 export type SearchClip = z.infer<typeof searchClipSchema>;
 export type SearchResult = z.infer<typeof searchResultSchema>;
 export type Ambassador = z.infer<typeof ambassadorSchema>;
+export type MarketCategory = z.infer<typeof marketCategorySchema>;
+export type MarketListing = z.infer<typeof marketListingSchema>;
+export type MarketListingDetail = z.infer<typeof marketListingDetailSchema>;
+export type MarketOrder = z.infer<typeof marketOrderSchema>;
 export type TalentScores = z.infer<typeof talentScoresSchema>;
 export type ScoutTalent = z.infer<typeof scoutTalentSchema>;
 export type ScoutTalentDetail = z.infer<typeof scoutTalentDetailSchema>;

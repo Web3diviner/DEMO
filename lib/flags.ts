@@ -17,11 +17,12 @@ export type Flags = Record<FlagKey, boolean>;
 
 export const DEFAULT_FLAGS: Flags = {
   premium: false,
-  marketplace: false,
+  // Enabled for this build; in production the backend flips flags for staged rollout.
+  marketplace: true,
   multiCampus: false,
   battles: true,
-  dms: false,
-  talentIntelligence: false,
+  dms: true,
+  talentIntelligence: true,
 };
 
 /** Merge server-provided overrides onto defaults; ignores unknown keys defensively. */

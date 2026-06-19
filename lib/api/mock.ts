@@ -331,6 +331,97 @@ function scoutDetail(handle: string) {
   };
 }
 
+// ── Marketplace (PRD §6.7) ───────────────────────────────────────────────────
+const MARKET = [
+  {
+    id: "m1",
+    title: "Amapiano Type Beat — 'Lagos Nights'",
+    category: "beat",
+    kind: "digital",
+    price: 120,
+    ci: 0,
+    blurb: "112 BPM · log drum heavy",
+    sold: 38,
+  },
+  {
+    id: "m2",
+    title: "Original Single — 'Campus Anthem'",
+    category: "song",
+    kind: "digital",
+    price: 80,
+    ci: 1,
+    blurb: "Afrobeats · 2:54",
+    sold: 204,
+  },
+  {
+    id: "m3",
+    title: "Freshers' Show — Front Row Ticket",
+    category: "ticket",
+    kind: "physical",
+    price: 250,
+    ci: 2,
+    blurb: "UNILAG main aud · Sat 8pm",
+    sold: 76,
+  },
+  {
+    id: "m4",
+    title: "DEMO Campus Hoodie",
+    category: "merch",
+    kind: "physical",
+    price: 400,
+    ci: 3,
+    blurb: "Heavyweight · S–XXL",
+    sold: 51,
+  },
+  {
+    id: "m5",
+    title: "Mix & Master (1 track)",
+    category: "service",
+    kind: "digital",
+    price: 300,
+    ci: 4,
+    blurb: "48h turnaround",
+    sold: 12,
+  },
+  {
+    id: "m6",
+    title: "Gospel Choir Stems Pack",
+    category: "beat",
+    kind: "digital",
+    price: 150,
+    ci: 5,
+    blurb: "WAV stems · royalty-free",
+    sold: 29,
+  },
+];
+
+function marketListing(m: (typeof MARKET)[number]) {
+  const creator = CREATORS[m.ci % CREATORS.length];
+  return {
+    id: m.id,
+    title: m.title,
+    category: m.category,
+    kind: m.kind,
+    price: { currency: "CREDITS" as const, minor: m.price },
+    creator: {
+      handle: creator.handle,
+      displayName: creator.displayName,
+      verified: creator.verified,
+    },
+    coverUrl: poster(m.ci + 1),
+    blurb: m.blurb,
+    soldCount: m.sold,
+  };
+}
+
+const DELIVER_NOTE: Record<string, string> = {
+  beat: "Instant download — WAV + MP3, with a license PDF.",
+  song: "Instant unlock — stream + download in your library.",
+  ticket: "Digital ticket with QR; also added to your wallet passes.",
+  merch: "Ships in 3–5 days. We'll ask for your delivery details at checkout.",
+  service: "The creator is notified and will deliver within the stated turnaround.",
+};
+
 // ── Moderation queue (PRD §10.3) ─────────────────────────────────────────────
 type MockModItem = {
   id: string;
@@ -611,6 +702,47 @@ export async function handleMock(
   if (/^\/v1\/charts\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
     const board = route.split("/")[3];
     return chartFor(board);
+  }
+
+  if (route === "/v1/market/listings" && (opts.method ?? "GET") === "GET") {
+    const category = new URLSearchParams(query).get("category");
+    return MARKET.filter((m) => !category || m.category === category).map(marketListing);
+  }
+
+  if (/^\/v1\/market\/listings\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
+    const id = route.split("/")[4];
+    const m = MARKET.find((x) => x.id === id) ?? MARKET[0];
+    return {
+      ...marketListing(m),
+      description:
+        "Made on campus, sold on DEMO. Every purchase supports the creator directly — the platform takes a small commission recorded in the ledger.",
+      deliverableNote: DELIVER_NOTE[m.category] ?? "Delivered after payment is confirmed.",
+    };
+  }
+
+  if (route === "/v1/market/orders" && opts.method === "POST") {
+    const { listingId } = opts.body as { listingId: string };
+    const m = MARKET.find((x) => x.id === listingId);
+    if (!m) throw new Error("Listing not found");
+    if (wallet.credits.minor < m.price) throw new Error("Not enough Credits");
+    // Spend Credits server-side (platform fee + creator earnings split happens in the ledger).
+    wallet.credits = { ...wallet.credits, minor: wallet.credits.minor - m.price };
+    const digital = m.kind === "digital";
+    return {
+      id: `ord_${Date.now().toString(36)}`,
+      listingId,
+      title: m.title,
+      status: digital ? "delivered" : "processing",
+      kind: m.kind,
+      deliverable: digital
+        ? {
+            type:
+              m.category === "ticket" ? "ticket" : m.category === "song" ? "unlock" : "download",
+            note: DELIVER_NOTE[m.category] ?? "Ready in your library.",
+          }
+        : null,
+      wallet,
+    };
   }
 
   if (route === "/v1/scout/talents" && (opts.method ?? "GET") === "GET") {
