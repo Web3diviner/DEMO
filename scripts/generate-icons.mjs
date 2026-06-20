@@ -49,7 +49,7 @@ for (const [name, svg, size, transparent] of targets) {
   const page = await browser.newPage({ viewport: { width: size, height: size } });
   await page.setContent(
     `<!doctype html><html><body style="margin:0">
-       <div style="width:${size}px;height:${size}px">${svg.replace('viewBox', `width="${size}" height="${size}" viewBox`)}</div>
+       <div style="width:${size}px;height:${size}px">${svg.replace("viewBox", `width="${size}" height="${size}" viewBox`)}</div>
      </body></html>`,
   );
   await page.screenshot({ path: join(OUT, name), omitBackground: transparent });

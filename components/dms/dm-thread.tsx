@@ -112,12 +112,15 @@ export function DmThread({ id }: { id: string }) {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           maxLength={1000}
+          // Gate sending until the thread has loaded: the optimistic append needs existing
+          // thread data to attach to, so sending into an unloaded thread would drop the message.
+          disabled={!data}
           placeholder="Message…"
-          className="border-line bg-surface focus-visible:outline-ring rounded-pill h-11 flex-1 border px-4 text-sm focus-visible:outline-2"
+          className="border-line bg-surface focus-visible:outline-ring rounded-pill h-11 flex-1 border px-4 text-sm focus-visible:outline-2 disabled:opacity-60"
         />
         <button
           type="submit"
-          disabled={!draft.trim()}
+          disabled={!draft.trim() || !data}
           aria-label="Send message"
           className="bg-brand text-brand-fg grid h-11 w-11 shrink-0 place-items-center rounded-full disabled:opacity-40"
         >

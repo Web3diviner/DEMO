@@ -1,0 +1,9 @@
+# Build output & generated artifacts (not source we format)
+.next/
+out/
+build/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+pnpm-lock.yaml

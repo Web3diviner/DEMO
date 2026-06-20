@@ -22,14 +22,14 @@ follow-ups (KYC flows, earnings withdrawal, seller listing creation, livestreams
 
 At a glance:
 
-| | |
-|---|---|
-| Commits (feature branch) | 16 |
-| App routes | ~27 |
-| Unit/component tests | 18 (Vitest) |
-| E2E specs | 13 (Playwright, Pixel-7 profile) |
-| Stack | Next.js 16 · React 19 · TypeScript · Tailwind v4 |
-| Quality gates | typecheck · lint · prettier · tests · production build — all green |
+|                          |                                                                    |
+| ------------------------ | ------------------------------------------------------------------ |
+| Commits (feature branch) | 16                                                                 |
+| App routes               | ~27                                                                |
+| Unit/component tests     | 18 (Vitest)                                                        |
+| E2E specs                | 13 (Playwright, Pixel-7 profile)                                   |
+| Stack                    | Next.js 16 · React 19 · TypeScript · Tailwind v4                   |
+| Quality gates            | typecheck · lint · prettier · tests · production build — all green |
 
 ---
 
@@ -38,6 +38,7 @@ At a glance:
 Every surface is mobile-web-first, accessible, token-themed, and wired to the typed contract.
 
 ### Consumer (the product)
+
 - **Feed** (`/feed`) — vertical `scroll-snap` swipe feed; `hls.js` adaptive-bitrate player,
   lazy-initialized for the active + next clip only; `playsinline muted` autoplay; **For You ↔
   Following** toggle; data-saver discipline (≤480p cellular / ≤720p Wi-Fi, prefetch only on Wi-Fi,
@@ -71,6 +72,7 @@ Every surface is mobile-web-first, accessible, token-themed, and wired to the ty
   memberships link.
 
 ### Staff & enterprise (same app, RBAC route groups)
+
 - **Moderation console** (`/moderation`, staff) — review queue from AI flags + user reports;
   severity triage; content/user actions (approve/remove/ban/escalate); optimistic resolve.
 - **Talent Intelligence / scout** (`/scout`, enterprise) — search + filters; **explainable composite
@@ -78,6 +80,7 @@ Every surface is mobile-web-first, accessible, token-themed, and wired to the ty
   one opaque number); per-talent breakdown + trend sparkline; **CSV export**.
 
 ### Cross-cutting
+
 - **PWA** — installable manifest + hand-rolled service worker (offline shell, engagement Background
   Sync, web-push handler); **media never cached** (data discipline).
 - **Feature flags** — `FlagsProvider` + type-safe `useFlag`; marketplace/premium gated.
@@ -103,15 +106,16 @@ Every surface is mobile-web-first, accessible, token-themed, and wired to the ty
   queue** (`lib/queue`) persisted to storage and drained via Background Sync; a single shared queue
   singleton avoids double-sends.
 - **Money is never optimistic.** Top-ups, votes, tips, purchases, subscriptions, tickets all spend
-  server-side and return the confirmed wallet; the client shows honest *pending* states.
+  server-side and return the confirmed wallet; the client shows honest _pending_ states.
 
 ## 4. Money model
 
 All amounts are **integer minor units** with an explicit currency — never floats (`lib/money.ts`,
 arithmetic refuses cross-currency mixing). Matches PRD §7:
+
 - **Credits** — fan, prepaid, closed-loop, **spend-only**, non-cashable.
 - **NGN** (kobo) — Paystack settlement; **creator earnings** are a revenue-share payable (cash out
-  via Transfers *or* convert to Credits), shown distinctly from Credits.
+  via Transfers _or_ convert to Credits), shown distinctly from Credits.
 - **USD** (cents) — the $1 verification price point.
 - Platform fee (10–25% per type) and the fee/earnings split happen server-side in the double-entry
   ledger; the client only ever displays server-returned balances.
@@ -120,6 +124,7 @@ arithmetic refuses cross-currency mixing). Matches PRD §7:
 
 Token-driven (`app/globals.css`), authored in **OKLCH**; mapped into Tailwind v4 via `@theme inline`
 so every utility resolves to a live CSS variable (runtime theming, one source of truth).
+
 - **Brand: green (primary) + orange (accent)**, with gold for verified/earnings; refined,
   professional tones (not neon). Because everything is token-driven, the rebrand was a single change
   at the source that cascaded to all screens.
@@ -196,9 +201,11 @@ public/           manifest.webmanifest · sw.js · icons
 ## 11. Done vs. not done
 
 **Done — all PRD frontend surfaces** (§6, §11 MVP, and the frontend parts of §12), the design system
-+ rebrand, the contract, tests, and CI.
+
+- rebrand, the contract, tests, and CI.
 
 **Not done (mostly not frontend):**
+
 - Backend (Go modular monolith, Postgres + double-entry ledger, Redis, Kafka→ClickHouse), smart
   contracts on Base (SBT badges, ERC-5643, NFT tickets), real integrations (live Paystack,
   embedded-wallet SDK, Cloudflare Stream transcoding, web-push delivery, moderation/CSAM vendor),
@@ -222,6 +229,7 @@ NEXT_PUBLIC_MEDIA_ORIGIN=https://test-streams.mux.dev pnpm dev
 Scripts: `pnpm build|start|typecheck|lint|format|test|e2e`.
 
 **Go-live checklist (backend/devops):**
+
 1. Implement the Go API against `contracts/openapi.yaml`.
 2. Set `NEXT_PUBLIC_USE_MOCK=false` and `NEXT_PUBLIC_API_ORIGIN`.
 3. Configure `NEXT_PUBLIC_MEDIA_ORIGIN` (CDN), `NEXT_PUBLIC_UPLOAD_ORIGIN` (tus),

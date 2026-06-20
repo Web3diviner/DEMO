@@ -16,8 +16,12 @@ test("a fan can get a ticket and see it in My tickets", async ({ page }) => {
   // Ticket issued with a QR.
   await expect(page.getByRole("img", { name: /ticket qr/i })).toBeVisible();
 
-  // And it shows in the ticket wallet.
-  await page.goto("/tickets");
+  // And it shows in the ticket wallet. Reach it the way a user does — the in-app "view ticket"
+  // link (client-side navigation) — so the just-issued ticket persists. A full page reload would
+  // re-initialise the in-memory mock backend and is the backend's job to persist, not the UI's.
+  await page.getByRole("button", { name: /^done$/i }).click();
+  await page.getByRole("link", { name: /view ticket/i }).click();
+  await expect(page).toHaveURL(/\/tickets/);
   await expect(page.getByText(/freshers' night live/i)).toBeVisible();
 });
 

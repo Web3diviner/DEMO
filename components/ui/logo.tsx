@@ -48,13 +48,7 @@ export function LogoMark({
 }
 
 /** Horizontal lockup: mark + "Skylora" wordmark ("Sky" in foreground, "lora" in gold). */
-export function Wordmark({
-  markSize = 28,
-  className,
-}: {
-  markSize?: number;
-  className?: string;
-}) {
+export function Wordmark({ markSize = 28, className }: { markSize?: number; className?: string }) {
   return (
     <span
       className={cn("inline-flex items-center gap-2 font-extrabold tracking-tight", className)}
