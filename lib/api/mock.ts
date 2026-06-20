@@ -1169,6 +1169,11 @@ export async function handleMock(
     return { following: value, followerCount: FOLLOWER_BASE + (value ? 1 : 0) };
   }
 
+  if (/^\/v1\/creators\/[^/]+\/report$/.test(route) && opts.method === "POST") {
+    // In production this opens a moderation case for the reported creator.
+    return { ok: true };
+  }
+
   if (route === "/v1/me" && (opts.method ?? "GET") === "GET") {
     return me;
   }

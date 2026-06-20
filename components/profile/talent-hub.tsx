@@ -11,6 +11,7 @@ import {
   Crown,
   Film,
   Megaphone,
+  MoreHorizontal,
   Play,
   Settings,
   Store,
@@ -19,6 +20,7 @@ import {
 import { api } from "@/lib/api/client";
 import { useFlag } from "@/lib/flags-provider";
 import { Button } from "@/components/ui/button";
+import { ProfileActionsSheet } from "./profile-actions-sheet";
 import type { Profile } from "@/lib/api/types";
 
 const compact = new Intl.NumberFormat("en-NG", { notation: "compact", maximumFractionDigits: 1 });
@@ -34,6 +36,7 @@ function Stat({ label, value }: { label: string; value: number }) {
 
 export function TalentHub({ handle, editable = false }: { handle: string; editable?: boolean }) {
   const qc = useQueryClient();
+  const [actionsOpen, setActionsOpen] = React.useState(false);
   const marketplaceOn = useFlag("marketplace");
   const premiumOn = useFlag("premium");
   const { data, status } = useQuery({
@@ -99,7 +102,7 @@ export function TalentHub({ handle, editable = false }: { handle: string; editab
             {creator.campus && <p className="text-subtle text-xs">{creator.campus}</p>}
           </div>
         </div>
-        {editable && (
+        {editable ? (
           <Link
             href="/settings"
             aria-label="Settings"
@@ -107,6 +110,15 @@ export function TalentHub({ handle, editable = false }: { handle: string; editab
           >
             <Settings className="h-5 w-5" />
           </Link>
+        ) : (
+          <button
+            type="button"
+            aria-label="More options"
+            onClick={() => setActionsOpen(true)}
+            className="text-muted hover:text-fg grid h-11 w-11 place-items-center rounded-full"
+          >
+            <MoreHorizontal className="h-5 w-5" />
+          </button>
         )}
       </header>
 
@@ -267,6 +279,16 @@ export function TalentHub({ handle, editable = false }: { handle: string; editab
           </li>
         ))}
       </ul>
+
+      {!editable && (
+        <ProfileActionsSheet
+          open={actionsOpen}
+          onClose={() => setActionsOpen(false)}
+          handle={creator.handle}
+          displayName={creator.displayName}
+          verified={creator.verified}
+        />
+      )}
     </div>
   );
 }

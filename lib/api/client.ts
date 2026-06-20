@@ -258,6 +258,18 @@ export const api = {
         idempotencyKey: `follow:${handle}:${value}`,
       });
     },
+    /** Report a creator; routes into the moderation queue. */
+    report(handle: string, reason: string): Promise<{ ok: boolean }> {
+      return request(
+        `/v1/creators/${encodeURIComponent(handle)}/report`,
+        z.object({ ok: z.boolean() }),
+        {
+          method: "POST",
+          body: { reason },
+          idempotencyKey: `report:${handle}:${reason}`,
+        },
+      );
+    },
   },
   me: {
     /** The signed-in user's own editable profile. */
