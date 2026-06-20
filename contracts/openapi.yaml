@@ -119,6 +119,40 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Wallet" }
+  /v1/earnings:
+    get:
+      summary: Creator earnings — balances, payout method, and recent ledger entries
+      responses:
+        "200":
+          description: Earnings summary
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EarningsSummary" }
+  /v1/earnings/withdraw:
+    post:
+      summary: Request a withdrawal of the creator's available balance (server-truth)
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amountMinor]
+              properties:
+                amountMinor:
+                  type: integer
+                  description: Amount in NGN kobo; must not exceed the available balance.
+      responses:
+        "200":
+          description: Withdrawal accepted for processing, with the updated summary
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WithdrawalResult" }
   /v1/credits/packs:
     get:
       summary: Purchasable Credit packs (server-quoted prices)
@@ -806,6 +840,44 @@ components:
       properties:
         credits: { $ref: "#/components/schemas/Money" }
         earnings: { $ref: "#/components/schemas/Money" }
+    PayoutMethod:
+      type: object
+      required: [bank, accountMask]
+      properties:
+        bank: { type: string }
+        accountMask: { type: string, description: "Masked account, e.g. ••••1234" }
+    EarningEntry:
+      type: object
+      required: [id, source, label, amount, createdAt, status]
+      properties:
+        id: { type: string }
+        source:
+          type: string
+          enum: [tip, battle, fanclub, market, bonus, withdrawal]
+        label: { type: string }
+        amount: { $ref: "#/components/schemas/Money" }
+        createdAt: { type: string, format: date-time }
+        status: { type: string, enum: [settled, pending] }
+    EarningsSummary:
+      type: object
+      required: [available, pending, lifetime, payoutMethod, entries]
+      properties:
+        available: { $ref: "#/components/schemas/Money" }
+        pending: { $ref: "#/components/schemas/Money" }
+        lifetime: { $ref: "#/components/schemas/Money" }
+        payoutMethod:
+          nullable: true
+          allOf: [{ $ref: "#/components/schemas/PayoutMethod" }]
+        entries:
+          type: array
+          items: { $ref: "#/components/schemas/EarningEntry" }
+    WithdrawalResult:
+      type: object
+      required: [reference, status, summary]
+      properties:
+        reference: { type: string }
+        status: { type: string, enum: [processing, failed] }
+        summary: { $ref: "#/components/schemas/EarningsSummary" }
     BattleContestant:
       type: object
       required: [id, creator, posterUrl, votes]

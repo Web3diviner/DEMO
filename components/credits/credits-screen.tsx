@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Sparkles, ArrowDownToLine, Info } from "lucide-react";
 import { api } from "@/lib/api/client";
@@ -55,9 +56,12 @@ export function CreditsScreen() {
         <p className="text-subtle mt-1 text-xs">
           Withdraw to your bank or convert. Separate from Credits.
         </p>
-        <Button block variant="secondary" className="border-gold/40 text-gold mt-4 border">
-          Withdraw
-        </Button>
+        <Link
+          href="/earnings"
+          className="rounded-pill border-gold/40 text-gold mt-4 flex h-11 items-center justify-center border font-medium active:scale-[0.98]"
+        >
+          Manage earnings
+        </Link>
       </section>
 
       <TopUpSheet

@@ -6,6 +6,8 @@ import {
   publishResultSchema,
   profileSchema,
   walletSchema,
+  earningsSummarySchema,
+  withdrawalResultSchema,
   creditPackSchema,
   topUpIntentSchema,
   topUpStatusSchema,
@@ -70,6 +72,8 @@ import {
   type PublishResult,
   type Profile,
   type Wallet,
+  type EarningsSummary,
+  type WithdrawalResult,
   type CreditPack,
   type TopUpIntent,
   type TopUpStatus,
@@ -208,6 +212,20 @@ export const api = {
   wallet: {
     get(signal?: AbortSignal): Promise<Wallet> {
       return request(`/v1/wallet`, walletSchema, { signal });
+    },
+  },
+  earnings: {
+    /** Creator earnings: withdrawable/pending/lifetime balances, payout method, recent entries. */
+    summary(signal?: AbortSignal): Promise<EarningsSummary> {
+      return request(`/v1/earnings`, earningsSummarySchema, { signal });
+    },
+    /** Request a withdrawal of `amountMinor` (NGN kobo). Server-truth; never optimistic. */
+    withdraw(amountMinor: number): Promise<WithdrawalResult> {
+      return request(`/v1/earnings/withdraw`, withdrawalResultSchema, {
+        method: "POST",
+        body: { amountMinor },
+        idempotencyKey: `withdraw:${amountMinor}:${Date.now()}`,
+      });
     },
   },
   credits: {

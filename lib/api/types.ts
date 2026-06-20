@@ -112,6 +112,49 @@ export const walletSchema = z.object({
   earnings: moneySchema, // NGN/USD, withdrawable
 });
 
+/* ── Creator earnings & withdrawals (the cash-out side of the creator economy) ──
+   Earnings are real money (NGN), kept strictly separate from fan Credits. Balances
+   and every transition are SERVER-TRUTH — the client never computes a balance, and
+   a withdrawal is never shown as complete until the backend confirms it. */
+export const earningSourceSchema = z.enum([
+  "tip",
+  "battle",
+  "fanclub",
+  "market",
+  "bonus",
+  "withdrawal",
+]);
+
+export const earningEntrySchema = z.object({
+  id: z.string(),
+  source: earningSourceSchema,
+  /** Human-readable line, e.g. "Tip from @ada.beats". */
+  label: z.string(),
+  amount: moneySchema, // NGN; negative for a withdrawal debit
+  createdAt: z.string(),
+  status: z.enum(["settled", "pending"]),
+});
+
+export const payoutMethodSchema = z.object({
+  bank: z.string(),
+  /** Masked account, e.g. "••••1234". Full number never leaves the backend. */
+  accountMask: z.string(),
+});
+
+export const earningsSummarySchema = z.object({
+  available: moneySchema, // NGN, withdrawable now
+  pending: moneySchema, // NGN, clearing
+  lifetime: moneySchema, // NGN, gross all-time
+  payoutMethod: payoutMethodSchema.nullable(),
+  entries: z.array(earningEntrySchema),
+});
+
+export const withdrawalResultSchema = z.object({
+  reference: z.string(),
+  status: z.enum(["processing", "failed"]),
+  summary: earningsSummarySchema,
+});
+
 /** A purchasable Credit pack. Prices are server-quoted (NGN), never computed client-side. */
 export const creditPackSchema = z.object({
   id: z.string(),
@@ -567,6 +610,11 @@ export type ChartEntry = z.infer<typeof chartEntrySchema>;
 export type Chart = z.infer<typeof chartSchema>;
 export type Profile = z.infer<typeof profileSchema>;
 export type Wallet = z.infer<typeof walletSchema>;
+export type EarningSource = z.infer<typeof earningSourceSchema>;
+export type EarningEntry = z.infer<typeof earningEntrySchema>;
+export type PayoutMethod = z.infer<typeof payoutMethodSchema>;
+export type EarningsSummary = z.infer<typeof earningsSummarySchema>;
+export type WithdrawalResult = z.infer<typeof withdrawalResultSchema>;
 export type CreditPack = z.infer<typeof creditPackSchema>;
 export type TopUpIntent = z.infer<typeof topUpIntentSchema>;
 export type TopUpStatus = z.infer<typeof topUpStatusSchema>;

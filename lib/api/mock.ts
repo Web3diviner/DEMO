@@ -91,6 +91,76 @@ const wallet = {
   earnings: { currency: "NGN" as const, minor: 875_000 },
 };
 
+// Creator earnings ledger. `wallet.earnings` is the withdrawable balance; these are the
+// supporting figures + recent line items. Negative amounts are withdrawal debits.
+const ngn = (minor: number) => ({ currency: "NGN" as const, minor });
+type MockEarningEntry = {
+  id: string;
+  source: "tip" | "battle" | "fanclub" | "market" | "bonus" | "withdrawal";
+  label: string;
+  amount: { currency: "NGN"; minor: number };
+  createdAt: string;
+  status: "settled" | "pending";
+};
+const earnings = {
+  pending: ngn(124_000), // ₦1,240 still clearing
+  lifetime: ngn(4_350_000), // ₦43,500 gross all-time
+  payoutMethod: { bank: "GTBank", accountMask: "••••1234" } as {
+    bank: string;
+    accountMask: string;
+  } | null,
+  entries: [
+    {
+      id: "ee_pend",
+      source: "tip",
+      label: "Tip from @zainab.sings",
+      amount: ngn(30_000),
+      createdAt: iso(-3600 * 2),
+      status: "pending",
+    },
+    {
+      id: "ee_tip",
+      source: "tip",
+      label: "Tip from @ada.beats",
+      amount: ngn(45_000),
+      createdAt: iso(-3600 * 4),
+      status: "settled",
+    },
+    {
+      id: "ee_battle",
+      source: "battle",
+      label: "Battle prize — Freestyle Friday",
+      amount: ngn(200_000),
+      createdAt: iso(-3600 * 20),
+      status: "settled",
+    },
+    {
+      id: "ee_fan",
+      source: "fanclub",
+      label: "Fan Club — 12 members",
+      amount: ngn(360_000),
+      createdAt: iso(-3600 * 48),
+      status: "settled",
+    },
+    {
+      id: "ee_market",
+      source: "market",
+      label: "Beat sale — “Lagos Nights”",
+      amount: ngn(150_000),
+      createdAt: iso(-3600 * 72),
+      status: "settled",
+    },
+    {
+      id: "ee_bonus",
+      source: "bonus",
+      label: "Creator launch bonus",
+      amount: ngn(100_000),
+      createdAt: iso(-3600 * 120),
+      status: "settled",
+    },
+  ] as MockEarningEntry[],
+};
+
 const CREDIT_PACKS = [
   { id: "pack_100", credits: 100, price: { currency: "NGN" as const, minor: 50_000 }, badge: null },
   {
@@ -316,7 +386,7 @@ const notifications: MockNotification[] = [
     createdAt: iso(-3600 * 26),
     read: true,
     actor: null,
-    href: "/credits",
+    href: "/earnings",
   },
   {
     id: "n6",
@@ -865,6 +935,51 @@ export async function handleMock(
 
   if (route === "/v1/wallet" && (opts.method ?? "GET") === "GET") {
     return wallet;
+  }
+
+  if (route === "/v1/earnings" && (opts.method ?? "GET") === "GET") {
+    return {
+      available: wallet.earnings,
+      pending: earnings.pending,
+      lifetime: earnings.lifetime,
+      payoutMethod: earnings.payoutMethod,
+      entries: earnings.entries,
+    };
+  }
+
+  if (route === "/v1/earnings/withdraw" && opts.method === "POST") {
+    const { amountMinor } = opts.body as { amountMinor: number };
+    if (!Number.isInteger(amountMinor) || amountMinor <= 0) {
+      throw new Error("Enter a valid amount to withdraw");
+    }
+    if (amountMinor > wallet.earnings.minor) {
+      throw new Error("That's more than your available balance");
+    }
+    if (!earnings.payoutMethod) {
+      throw new Error("Add a payout method first");
+    }
+    // Server-truth move: debit the withdrawable balance and record a pending withdrawal entry.
+    wallet.earnings = { ...wallet.earnings, minor: wallet.earnings.minor - amountMinor };
+    const entry: MockEarningEntry = {
+      id: `ee_wd_${Date.now()}`,
+      source: "withdrawal",
+      label: `Withdrawal to ${earnings.payoutMethod.bank} ${earnings.payoutMethod.accountMask}`,
+      amount: ngn(-amountMinor),
+      createdAt: iso(0),
+      status: "pending",
+    };
+    earnings.entries.unshift(entry);
+    return {
+      reference: `wd_${Date.now()}`,
+      status: "processing" as const,
+      summary: {
+        available: wallet.earnings,
+        pending: earnings.pending,
+        lifetime: earnings.lifetime,
+        payoutMethod: earnings.payoutMethod,
+        entries: earnings.entries,
+      },
+    };
   }
 
   if (route === "/v1/credits/packs" && (opts.method ?? "GET") === "GET") {
