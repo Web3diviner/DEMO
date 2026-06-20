@@ -149,6 +149,17 @@ export const earningsSummarySchema = z.object({
   entries: z.array(earningEntrySchema),
 });
 
+/** A bank the user can link for payouts. */
+export const bankSchema = z.object({
+  code: z.string(),
+  name: z.string(),
+});
+
+/** Result of an account-name lookup (the "is this really your account?" confirmation step). */
+export const resolvedAccountSchema = z.object({
+  accountName: z.string(),
+});
+
 export const withdrawalResultSchema = z.object({
   reference: z.string(),
   status: z.enum(["processing", "failed"]),
@@ -615,6 +626,8 @@ export type EarningEntry = z.infer<typeof earningEntrySchema>;
 export type PayoutMethod = z.infer<typeof payoutMethodSchema>;
 export type EarningsSummary = z.infer<typeof earningsSummarySchema>;
 export type WithdrawalResult = z.infer<typeof withdrawalResultSchema>;
+export type Bank = z.infer<typeof bankSchema>;
+export type ResolvedAccount = z.infer<typeof resolvedAccountSchema>;
 export type CreditPack = z.infer<typeof creditPackSchema>;
 export type TopUpIntent = z.infer<typeof topUpIntentSchema>;
 export type TopUpStatus = z.infer<typeof topUpStatusSchema>;

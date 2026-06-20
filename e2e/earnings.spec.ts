@@ -22,6 +22,29 @@ test("a creator can withdraw available earnings", async ({ page }) => {
   await expect(page.getByText(/withdrawal to gtbank/i)).toBeVisible();
 });
 
+test("a creator can change the payout account after confirming the name", async ({ page }) => {
+  await page.goto("/earnings");
+
+  await page.getByRole("button", { name: /^change$/i }).click();
+  const dialog = page.getByRole("dialog", { name: /payout account/i });
+  await expect(dialog).toBeVisible();
+
+  // Save stays disabled until the account resolves.
+  const save = dialog.getByRole("button", { name: /save payout account/i });
+  await expect(save).toBeDisabled();
+
+  await dialog.getByRole("combobox").selectOption({ label: "Access Bank" });
+  await dialog.getByPlaceholder("0123456789").fill("0123456789");
+
+  // The resolved holder name appears, enabling save.
+  await expect(dialog.getByText(/[A-Z]{3,} [A-Z]{3,}/)).toBeVisible();
+  await expect(save).toBeEnabled();
+  await save.click();
+
+  // The new account (last 4 digits) is reflected on the screen.
+  await expect(page.getByText(/Access Bank ••••6789/)).toBeVisible();
+});
+
 test("the wallet links through to earnings", async ({ page }) => {
   await page.goto("/credits");
   await page.getByRole("link", { name: /manage earnings/i }).click();

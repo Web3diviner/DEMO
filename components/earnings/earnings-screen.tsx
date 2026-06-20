@@ -19,6 +19,7 @@ import { fromMinor, format } from "@/lib/money";
 import { ago } from "@/lib/utils/time";
 import { Button } from "@/components/ui/button";
 import { WithdrawSheet } from "./withdraw-sheet";
+import { PayoutMethodSheet } from "./payout-method-sheet";
 import { cn } from "@/lib/utils/cn";
 import type { EarningEntry, EarningSource, EarningsSummary } from "@/lib/api/types";
 
@@ -89,6 +90,7 @@ function EntryRow({ entry }: { entry: EarningEntry }) {
 export function EarningsScreen() {
   const qc = useQueryClient();
   const [withdrawOpen, setWithdrawOpen] = React.useState(false);
+  const [payoutOpen, setPayoutOpen] = React.useState(false);
 
   const { data = PLACEHOLDER, status } = useQuery({
     queryKey: ["earnings"],
@@ -148,7 +150,11 @@ export function EarningsScreen() {
           </p>
           <p className="text-subtle text-xs">Payout account</p>
         </div>
-        <button type="button" className="text-brand text-sm font-medium">
+        <button
+          type="button"
+          onClick={() => setPayoutOpen(true)}
+          className="text-brand text-sm font-medium"
+        >
           {data.payoutMethod ? "Change" : "Add"}
         </button>
       </div>
@@ -183,6 +189,12 @@ export function EarningsScreen() {
         available={data.available}
         payoutMethod={data.payoutMethod}
         onConfirmed={onWithdrawn}
+      />
+      <PayoutMethodSheet
+        open={payoutOpen}
+        onClose={() => setPayoutOpen(false)}
+        currentMethod={data.payoutMethod}
+        onSaved={(summary) => qc.setQueryData(["earnings"], summary)}
       />
     </main>
   );

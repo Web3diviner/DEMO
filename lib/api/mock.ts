@@ -91,6 +91,34 @@ const wallet = {
   earnings: { currency: "NGN" as const, minor: 875_000 },
 };
 
+// Payout banks (subset of the NIBSS list) for the account-linking flow.
+const BANKS = [
+  { code: "058", name: "GTBank" },
+  { code: "044", name: "Access Bank" },
+  { code: "057", name: "Zenith Bank" },
+  { code: "033", name: "UBA" },
+  { code: "011", name: "First Bank" },
+  { code: "050", name: "Ecobank" },
+  { code: "232", name: "Sterling Bank" },
+  { code: "innov", name: "Kuda" },
+  { code: "opay", name: "OPay" },
+  { code: "palm", name: "PalmPay" },
+];
+
+// Deterministic stand-in for a bank account-name lookup (the real backend calls the bank/NIBSS).
+const RESOLVE_NAMES = [
+  "ADAEZE OKAFOR",
+  "TUNDE ADEYEMI",
+  "ZAINAB BELLO",
+  "CHIDI NWOSU",
+  "IFEOMA ELE",
+  "MUSA IBRAHIM",
+];
+function resolveAccountName(accountNumber: string): string {
+  const sum = [...accountNumber].reduce((a, c) => a + c.charCodeAt(0), 0);
+  return RESOLVE_NAMES[sum % RESOLVE_NAMES.length];
+}
+
 // Creator earnings ledger. `wallet.earnings` is the withdrawable balance; these are the
 // supporting figures + recent line items. Negative amounts are withdrawal debits.
 const ngn = (minor: number) => ({ currency: "NGN" as const, minor });
@@ -938,6 +966,34 @@ export async function handleMock(
   }
 
   if (route === "/v1/earnings" && (opts.method ?? "GET") === "GET") {
+    return {
+      available: wallet.earnings,
+      pending: earnings.pending,
+      lifetime: earnings.lifetime,
+      payoutMethod: earnings.payoutMethod,
+      entries: earnings.entries,
+    };
+  }
+
+  if (route === "/v1/banks" && (opts.method ?? "GET") === "GET") {
+    return BANKS;
+  }
+
+  if (route === "/v1/earnings/payout-method/resolve" && (opts.method ?? "GET") === "GET") {
+    const params = new URLSearchParams(query ?? "");
+    const bankCode = params.get("bankCode") ?? "";
+    const accountNumber = params.get("accountNumber") ?? "";
+    if (!BANKS.some((b) => b.code === bankCode)) throw new Error("Choose a bank");
+    if (!/^\d{10}$/.test(accountNumber)) throw new Error("Enter a valid 10-digit account number");
+    return { accountName: resolveAccountName(accountNumber) };
+  }
+
+  if (route === "/v1/earnings/payout-method" && opts.method === "POST") {
+    const { bankCode, accountNumber } = opts.body as { bankCode: string; accountNumber: string };
+    const bank = BANKS.find((b) => b.code === bankCode);
+    if (!bank) throw new Error("Choose a bank");
+    if (!/^\d{10}$/.test(accountNumber)) throw new Error("Enter a valid 10-digit account number");
+    earnings.payoutMethod = { bank: bank.name, accountMask: `••••${accountNumber.slice(-4)}` };
     return {
       available: wallet.earnings,
       pending: earnings.pending,

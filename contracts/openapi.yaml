@@ -153,6 +153,53 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/WithdrawalResult" }
+  /v1/banks:
+    get:
+      summary: Banks available for payout
+      responses:
+        "200":
+          description: Bank list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Bank" }
+  /v1/earnings/payout-method/resolve:
+    get:
+      summary: Resolve the account holder's name for a bank + account number
+      parameters:
+        - { name: bankCode, in: query, required: true, schema: { type: string } }
+        - { name: accountNumber, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Resolved account holder
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ResolvedAccount" }
+  /v1/earnings/payout-method:
+    post:
+      summary: Link a bank account as the creator's payout method
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bankCode, accountNumber]
+              properties:
+                bankCode: { type: string }
+                accountNumber: { type: string, description: "10-digit NUBAN" }
+      responses:
+        "200":
+          description: Updated earnings summary (account stored masked)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EarningsSummary" }
   /v1/credits/packs:
     get:
       summary: Purchasable Credit packs (server-quoted prices)
@@ -878,6 +925,17 @@ components:
         reference: { type: string }
         status: { type: string, enum: [processing, failed] }
         summary: { $ref: "#/components/schemas/EarningsSummary" }
+    Bank:
+      type: object
+      required: [code, name]
+      properties:
+        code: { type: string }
+        name: { type: string }
+    ResolvedAccount:
+      type: object
+      required: [accountName]
+      properties:
+        accountName: { type: string }
     BattleContestant:
       type: object
       required: [id, creator, posterUrl, votes]

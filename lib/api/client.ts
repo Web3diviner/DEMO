@@ -8,6 +8,8 @@ import {
   walletSchema,
   earningsSummarySchema,
   withdrawalResultSchema,
+  bankSchema,
+  resolvedAccountSchema,
   creditPackSchema,
   topUpIntentSchema,
   topUpStatusSchema,
@@ -74,6 +76,8 @@ import {
   type Wallet,
   type EarningsSummary,
   type WithdrawalResult,
+  type Bank,
+  type ResolvedAccount,
   type CreditPack,
   type TopUpIntent,
   type TopUpStatus,
@@ -225,6 +229,29 @@ export const api = {
         method: "POST",
         body: { amountMinor },
         idempotencyKey: `withdraw:${amountMinor}:${Date.now()}`,
+      });
+    },
+    /** Banks available for payout. */
+    banks(signal?: AbortSignal): Promise<Bank[]> {
+      return request(`/v1/banks`, z.array(bankSchema), { signal });
+    },
+    /** Resolve the account holder's name for a bank + account number (confirmation step). */
+    resolveAccount(
+      bankCode: string,
+      accountNumber: string,
+      signal?: AbortSignal,
+    ): Promise<ResolvedAccount> {
+      const qs = new URLSearchParams({ bankCode, accountNumber });
+      return request(`/v1/earnings/payout-method/resolve?${qs.toString()}`, resolvedAccountSchema, {
+        signal,
+      });
+    },
+    /** Link a bank account as the payout method. Returns the updated summary (account masked). */
+    setPayoutMethod(bankCode: string, accountNumber: string): Promise<EarningsSummary> {
+      return request(`/v1/earnings/payout-method`, earningsSummarySchema, {
+        method: "POST",
+        body: { bankCode, accountNumber },
+        idempotencyKey: `payout:${bankCode}:${accountNumber}`,
       });
     },
   },
