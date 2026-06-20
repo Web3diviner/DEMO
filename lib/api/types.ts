@@ -464,6 +464,13 @@ export const privacySettingsSchema = z.object({
   allowDownloads: z.boolean(),
 });
 
+/** A blocked account, as shown in the block list. */
+export const blockedUserSchema = z.object({
+  handle: z.string(),
+  displayName: z.string(),
+  verified: z.boolean(),
+});
+
 /* ── Events (PRD §6.8 — real-world ↔ platform bridge) ──────────────────────────
    Campus shows, concerts, competitions, awards, festivals. Ticketing now;
    NFT tickets (provenance / anti-fraud / resale-royalty) are a later phase. */
@@ -803,6 +810,7 @@ export type NotificationsPage = z.infer<typeof notificationsPageSchema>;
 export type NotificationPrefKey = z.infer<typeof notificationPrefKeySchema>;
 export type NotificationPrefs = z.infer<typeof notificationPrefsSchema>;
 export type PrivacySettings = z.infer<typeof privacySettingsSchema>;
+export type BlockedUser = z.infer<typeof blockedUserSchema>;
 export type ModerationItem = z.infer<typeof moderationItemSchema>;
 export type ModerationAction = "approve" | "remove" | "ban" | "escalate";
 export type ModerationActionResult = z.infer<typeof moderationActionResultSchema>;

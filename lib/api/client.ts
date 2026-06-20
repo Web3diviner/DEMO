@@ -9,6 +9,7 @@ import {
   followResultSchema,
   meSchema,
   privacySettingsSchema,
+  blockedUserSchema,
   walletSchema,
   earningsSummarySchema,
   withdrawalResultSchema,
@@ -86,6 +87,7 @@ import {
   type FollowResult,
   type Me,
   type PrivacySettings,
+  type BlockedUser,
   type Wallet,
   type EarningsSummary,
   type WithdrawalResult,
@@ -275,6 +277,29 @@ export const api = {
     /** Persist updated privacy settings. Returns the saved settings. */
     update(settings: PrivacySettings): Promise<PrivacySettings> {
       return request(`/v1/privacy`, privacySettingsSchema, { method: "PATCH", body: settings });
+    },
+    /** The accounts the user has blocked. */
+    blocked(signal?: AbortSignal): Promise<BlockedUser[]> {
+      return request(`/v1/privacy/blocked`, z.array(blockedUserSchema), { signal });
+    },
+    /** Block an account by handle. Returns the updated block list. */
+    block(handle: string): Promise<BlockedUser[]> {
+      return request(`/v1/privacy/blocked`, z.array(blockedUserSchema), {
+        method: "POST",
+        body: { handle },
+        idempotencyKey: `block:${handle}`,
+      });
+    },
+    /** Unblock an account. Returns the updated block list. */
+    unblock(handle: string): Promise<BlockedUser[]> {
+      return request(
+        `/v1/privacy/blocked/${encodeURIComponent(handle)}`,
+        z.array(blockedUserSchema),
+        {
+          method: "DELETE",
+          idempotencyKey: `unblock:${handle}`,
+        },
+      );
     },
   },
   wallet: {

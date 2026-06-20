@@ -232,6 +232,57 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/PrivacySettings" }
+  /v1/privacy/blocked:
+    get:
+      summary: The accounts the user has blocked
+      responses:
+        "200":
+          description: Block list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/BlockedUser" }
+    post:
+      summary: Block an account by handle
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [handle]
+              properties: { handle: { type: string } }
+      responses:
+        "200":
+          description: Updated block list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/BlockedUser" }
+  /v1/privacy/blocked/{handle}:
+    delete:
+      summary: Unblock an account
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Updated block list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/BlockedUser" }
   /v1/wallet:
     get:
       summary: Fan Credits + creator earnings (server-truth balances)
@@ -1244,6 +1295,13 @@ components:
         commentsFrom: { type: string, enum: [everyone, following, off] }
         activityStatus: { type: boolean }
         allowDownloads: { type: boolean }
+    BlockedUser:
+      type: object
+      required: [handle, displayName, verified]
+      properties:
+        handle: { type: string }
+        displayName: { type: string }
+        verified: { type: boolean }
     Hashtag:
       type: object
       required: [tag, posts]

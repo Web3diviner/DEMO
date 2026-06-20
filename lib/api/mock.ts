@@ -52,6 +52,13 @@ const privacy = {
   allowDownloads: true,
 };
 
+// Blocked accounts (mutable per session).
+type MockBlocked = { handle: string; displayName: string; verified: boolean };
+const blockedUsers: MockBlocked[] = [
+  { handle: "spam.bot01", displayName: "DealsDailyNG", verified: false },
+  { handle: "rude.guy", displayName: "K. O.", verified: false },
+];
+
 // The signed-in user's own editable profile (mutable so edits persist within a session).
 // Overrides are merged into the public profile for the same handle.
 const me = {
@@ -1187,6 +1194,25 @@ export async function handleMock(
   if (route === "/v1/privacy" && opts.method === "PATCH") {
     Object.assign(privacy, opts.body as Partial<typeof privacy>);
     return privacy;
+  }
+
+  if (route === "/v1/privacy/blocked" && (opts.method ?? "GET") === "GET") {
+    return blockedUsers;
+  }
+
+  if (route === "/v1/privacy/blocked" && opts.method === "POST") {
+    const { handle } = opts.body as { handle: string };
+    if (handle && !blockedUsers.some((b) => b.handle === handle)) {
+      blockedUsers.unshift({ handle, displayName: handle, verified: false });
+    }
+    return blockedUsers;
+  }
+
+  if (/^\/v1\/privacy\/blocked\/[^/]+$/.test(route) && opts.method === "DELETE") {
+    const handle = decodeURIComponent(route.split("/")[4]);
+    const idx = blockedUsers.findIndex((b) => b.handle === handle);
+    if (idx !== -1) blockedUsers.splice(idx, 1);
+    return blockedUsers;
   }
 
   if (route === "/v1/wallet" && (opts.method ?? "GET") === "GET") {

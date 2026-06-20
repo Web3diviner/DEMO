@@ -3,7 +3,16 @@
 import * as React from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Download, Eye, Lock, MessageCircle, Radio } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronRight,
+  Download,
+  Eye,
+  Lock,
+  MessageCircle,
+  Radio,
+  UserX,
+} from "lucide-react";
 import { api } from "@/lib/api/client";
 import { cn } from "@/lib/utils/cn";
 import type { PrivacySettings } from "@/lib/api/types";
@@ -192,6 +201,20 @@ export function PrivacyScreen() {
                 />
               </Row>
             </div>
+          </section>
+
+          <section className="mt-6">
+            <h2 className="text-subtle mb-1 text-xs font-medium uppercase">Safety</h2>
+            <Link href="/settings/privacy/blocked" className="flex items-center gap-3 py-4">
+              <span className="bg-elevated text-muted grid h-9 w-9 shrink-0 place-items-center rounded-full">
+                <UserX className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium">Blocked accounts</p>
+                <p className="text-subtle text-xs">Manage who you&apos;ve blocked</p>
+              </div>
+              <ChevronRight className="text-subtle h-4 w-4" aria-hidden />
+            </Link>
           </section>
 
           <p className="text-subtle mt-6 text-xs">
