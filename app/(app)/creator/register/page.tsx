@@ -33,7 +33,7 @@ export default function CreatorRegisterPage() {
       </div>
       <h1 className="mt-4 text-2xl font-semibold tracking-tight">Become a verified creator</h1>
       <p className="text-muted mt-2 text-sm">
-        A one-time <span className="text-fg font-semibold">$1</span> verification keeps DEMO real
+        A one-time <span className="text-fg font-semibold">$1</span> verification keeps Skylora real
         and unlocks everything you need to get discovered.
       </p>
 

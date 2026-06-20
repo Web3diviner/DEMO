@@ -1,3 +1,5 @@
+import { Wordmark } from "@/components/ui/logo";
+
 /**
  * Enterprise / scout route group — ENTERPRISE realm (separate from consumer auth).
  *
@@ -7,8 +9,9 @@
 export default function EnterpriseLayout({ children }: { children: React.ReactNode }) {
   return (
     <div data-theme="light" className="min-h-dscreen bg-canvas text-fg">
-      <header className="border-line border-b px-5 py-3">
-        <span className="text-sm font-semibold">DEMO · Talent Intelligence</span>
+      <header className="border-line flex items-center gap-2 border-b px-5 py-3">
+        <Wordmark markSize={22} className="text-sm" />
+        <span className="text-muted text-sm">· Talent Intelligence</span>
       </header>
       <main id="main" className="p-5">
         {children}

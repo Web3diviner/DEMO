@@ -1,6 +1,6 @@
 {
-  "name": "DEMO",
-  "short_name": "DEMO",
+  "name": "Skylora",
+  "short_name": "Skylora",
   "description": "Where campus talent gets discovered.",
   "start_url": "/feed",
   "scope": "/",

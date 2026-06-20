@@ -164,7 +164,7 @@ export function SettingsScreen() {
         </div>
       </section>
 
-      <p className="text-subtle mt-8 text-center text-xs">DEMO · mobile-web (PWA)</p>
+      <p className="text-subtle mt-8 text-center text-xs">Skylora · mobile-web (PWA)</p>
     </main>
   );
 }

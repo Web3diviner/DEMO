@@ -1,5 +1,5 @@
 /**
- * DEMO service worker — hand-rolled for full control on slow/intermittent networks.
+ * Skylora service worker — hand-rolled for full control on slow/intermittent networks.
  *
  * Strategy, by request type:
  *   - App shell / navigations  → network-first, fall back to cached offline shell.
@@ -106,10 +106,10 @@ self.addEventListener("push", (event) => {
   try {
     payload = event.data.json();
   } catch {
-    payload = { title: "DEMO", body: event.data.text() };
+    payload = { title: "Skylora", body: event.data.text() };
   }
   event.waitUntil(
-    self.registration.showNotification(payload.title ?? "DEMO", {
+    self.registration.showNotification(payload.title ?? "Skylora", {
       body: payload.body ?? "",
       icon: "/icons/icon-192.png",
       badge: "/icons/badge-72.png",

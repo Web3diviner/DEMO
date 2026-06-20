@@ -66,7 +66,7 @@ export function TipSheet({
           <p className="text-lg font-semibold">Thank you! 🎉</p>
           <p className="text-subtle max-w-xs text-xs">
             You sent {format(fromMinor(amount, "CREDITS"))} to @{creatorHandle}. Most goes straight
-            to them; DEMO keeps a small fee.
+            to them; Skylora keeps a small fee.
           </p>
           <Button block onClick={onClose} className="mt-1">
             Done

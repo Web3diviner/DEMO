@@ -7,11 +7,11 @@ const geistSans = Geist({ variable: "--font-sans", subsets: ["latin"], display: 
 const geistMono = Geist_Mono({ variable: "--font-mono", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  applicationName: "DEMO",
-  title: { default: "DEMO — Where campus talent gets discovered", template: "%s · DEMO" },
+  applicationName: "Skylora",
+  title: { default: "Skylora — Where campus talent gets discovered", template: "%s · Skylora" },
   description: "Discover, back, and battle the next generation of campus talent.",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "DEMO" },
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Skylora" },
   formatDetection: { telephone: false },
 };
 

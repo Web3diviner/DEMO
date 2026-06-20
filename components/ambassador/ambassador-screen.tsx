@@ -34,8 +34,8 @@ export function AmbassadorScreen() {
     if (!data) return;
     void navigator
       .share?.({
-        title: "Join me on DEMO",
-        text: "Come show your talent on DEMO 🎤",
+        title: "Join me on Skylora",
+        text: "Come show your talent on Skylora 🎤",
         url: data.referralUrl,
       })
       .catch(() => {});
@@ -60,7 +60,7 @@ export function AmbassadorScreen() {
       <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
         <Megaphone className="text-brand h-6 w-6" aria-hidden /> Campus Ambassador
       </h1>
-      <p className="text-muted mt-1 text-sm">Grow your campus on DEMO and earn Credits.</p>
+      <p className="text-muted mt-1 text-sm">Grow your campus on Skylora and earn Credits.</p>
 
       {/* Referral card */}
       <section className="border-line bg-surface mt-5 rounded-lg border p-5">

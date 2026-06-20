@@ -115,7 +115,7 @@ export function TopUpSheet({
             </li>
           ))}
           <p className="text-subtle pt-2 text-center text-xs">
-            Credits are spendable in DEMO and don&apos;t cash out. Secured by Paystack.
+            Credits are spendable in Skylora and don&apos;t cash out. Secured by Paystack.
           </p>
         </ul>
       )}
