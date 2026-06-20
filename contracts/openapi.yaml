@@ -1955,15 +1955,39 @@ components:
         campus: { type: string, nullable: true }
         avatarUrl: { type: string, format: uri, nullable: true }
         verified: { type: boolean }
+    Achievement:
+      type: object
+      required: [id, label, kind]
+      properties:
+        id: { type: string }
+        label: { type: string }
+        kind: { type: string, enum: [verified, rising, milestone, battle, chart, founder] }
     Profile:
       type: object
-      required: [creator, bio, followerCount, followingCount, totalLikes, viewer, clips]
+      required:
+        [
+          creator,
+          bio,
+          followerCount,
+          followingCount,
+          totalLikes,
+          talentScore,
+          scores,
+          achievements,
+          viewer,
+          clips,
+        ]
       properties:
         creator: { $ref: "#/components/schemas/Creator" }
         bio: { type: string }
         followerCount: { type: integer }
         followingCount: { type: integer }
         totalLikes: { type: integer }
+        talentScore: { type: number }
+        scores: { $ref: "#/components/schemas/TalentScores" }
+        achievements:
+          type: array
+          items: { $ref: "#/components/schemas/Achievement" }
         viewer:
           type: object
           required: [following]

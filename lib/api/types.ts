@@ -108,6 +108,22 @@ export const otpChallengeSchema = z.object({ challengeId: z.string() });
 export const authResultSchema = z.object({ user: sessionUserSchema, isNew: z.boolean() });
 export const kycResultSchema = z.object({ kycTier: z.number().int() });
 
+/** Explainable composite scores (PRD §6.9), each 0–100. Powers the Talent Hub + scout. */
+export const talentScoresSchema = z.object({
+  growth: z.number(), // Talent Growth
+  virality: z.number(), // Virality
+  loyalty: z.number(), // Fan Loyalty
+  campusInfluence: z.number(), // Campus Influence
+  readiness: z.number(), // Label/Sponsor Readiness
+});
+
+/** A soulbound achievement/badge on the Talent Hub (PRD §6.2, §8.2). */
+export const achievementSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  kind: z.enum(["verified", "rising", "milestone", "battle", "chart", "founder"]),
+});
+
 /** Creator profile / Talent Hub. */
 export const profileSchema = z.object({
   creator: creatorSchema,
@@ -115,6 +131,11 @@ export const profileSchema = z.object({
   followerCount: z.number().int(),
   followingCount: z.number().int(),
   totalLikes: z.number().int(),
+  /** Overall Talent Score (0–100) + its transparent composite breakdown (PRD §6.2/§6.9). */
+  talentScore: z.number(),
+  scores: talentScoresSchema,
+  /** Soulbound achievements/badges. */
+  achievements: z.array(achievementSchema),
   /** The signed-in viewer's relationship to this creator. */
   viewer: z.object({ following: z.boolean() }),
   clips: z.array(
@@ -648,14 +669,7 @@ export const marketOrderSchema = z.object({
 
 /* ── Talent Intelligence (PRD §6.9 — the scout data product) ────────────────────
    Explainable composite scores (NOT one opaque number): each 0–100. Powers the
-   enterprise search/filter/export surface. */
-export const talentScoresSchema = z.object({
-  growth: z.number(), // Talent Growth
-  virality: z.number(), // Virality
-  loyalty: z.number(), // Fan Loyalty
-  campusInfluence: z.number(), // Campus Influence
-  readiness: z.number(), // Label/Sponsor Readiness
-});
+   enterprise search/filter/export surface AND the Talent Hub (defined above). */
 
 export const scoutTalentSchema = z.object({
   id: z.string(),
@@ -790,6 +804,7 @@ export type SessionUser = z.infer<typeof sessionUserSchema>;
 export type OtpChallenge = z.infer<typeof otpChallengeSchema>;
 export type AuthResult = z.infer<typeof authResultSchema>;
 export type KycResult = z.infer<typeof kycResultSchema>;
+export type Achievement = z.infer<typeof achievementSchema>;
 export type Profile = z.infer<typeof profileSchema>;
 export type FollowResult = z.infer<typeof followResultSchema>;
 export type Me = z.infer<typeof meSchema>;

@@ -13,10 +13,16 @@ test("upload page shows the picker and data-aware copy", async ({ page }) => {
   await expect(page.getByText(/resume/i)).toBeVisible();
 });
 
-test("talent hub renders profile, stats and clip grid", async ({ page }) => {
+test("talent hub renders profile, talent score, achievements and clip grid", async ({ page }) => {
   await page.goto("/profile");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByText(/followers/i)).toBeVisible();
+
+  // Talent Score (transparent composite) with sub-scores and an achievement badge.
+  await expect(page.getByText(/talent score/i)).toBeVisible();
+  await expect(page.getByText(/^Growth$/)).toBeVisible();
+  await expect(page.getByText(/rising star/i)).toBeVisible();
+
   await expect(page.getByRole("heading", { name: /^clips$/i })).toBeVisible();
 });
 

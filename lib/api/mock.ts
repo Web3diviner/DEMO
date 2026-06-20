@@ -1197,6 +1197,32 @@ export async function handleMock(
     // Merge the signed-in user's edits into their own public profile.
     const mine = handle === me.handle;
     const following = followedHandles.has(handle);
+    // Deterministic explainable composite scores from the handle (stable per creator).
+    const seed = [...handle].reduce((a, c) => a + c.charCodeAt(0), 0);
+    const s = (base: number) => Math.max(35, Math.min(99, base + (seed % 17) - 8));
+    const scores = {
+      growth: s(82),
+      virality: s(76),
+      loyalty: s(71),
+      campusInfluence: s(85),
+      readiness: s(64),
+    };
+    const talentScore = Math.round(
+      scores.growth * 0.25 +
+        scores.virality * 0.25 +
+        scores.loyalty * 0.2 +
+        scores.campusInfluence * 0.15 +
+        scores.readiness * 0.15,
+    );
+    const achievements = [
+      ...(creator.verified
+        ? [{ id: "verified", label: "Verified", kind: "verified" as const }]
+        : []),
+      { id: "rising", label: "Rising Star", kind: "rising" as const },
+      { id: "1k", label: "1K Club", kind: "milestone" as const },
+      { id: "battle", label: "Battle Winner", kind: "battle" as const },
+      { id: "chart", label: "Campus #1", kind: "chart" as const },
+    ];
     return {
       creator: {
         ...creator,
@@ -1208,6 +1234,9 @@ export async function handleMock(
       followerCount: FOLLOWER_BASE + (following ? 1 : 0),
       followingCount: 312,
       totalLikes: 248_900,
+      talentScore,
+      scores,
+      achievements,
       viewer: { following },
       clips,
     };

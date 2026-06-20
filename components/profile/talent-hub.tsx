@@ -10,20 +10,38 @@ import {
   ChevronRight,
   Crown,
   Film,
+  Gauge,
   Megaphone,
   MoreHorizontal,
   Play,
   Settings,
+  Sparkles,
   Store,
   Swords,
+  TrendingUp,
+  Trophy,
 } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { useFlag } from "@/lib/flags-provider";
 import { Button } from "@/components/ui/button";
+import { SCORE_META, scoreTone } from "@/components/scout/score-meta";
+import { cn } from "@/lib/utils/cn";
 import { ProfileActionsSheet } from "./profile-actions-sheet";
-import type { Profile } from "@/lib/api/types";
+import type { Achievement, Profile } from "@/lib/api/types";
 
 const compact = new Intl.NumberFormat("en-NG", { notation: "compact", maximumFractionDigits: 1 });
+
+const ACHIEVEMENT_META: Record<
+  Achievement["kind"],
+  { Icon: React.ComponentType<{ className?: string }>; tint: string }
+> = {
+  verified: { Icon: BadgeCheck, tint: "border-gold/30 bg-gold/10 text-gold" },
+  rising: { Icon: TrendingUp, tint: "border-brand/30 bg-brand/10 text-brand" },
+  milestone: { Icon: Sparkles, tint: "border-brand/30 bg-brand/10 text-brand" },
+  battle: { Icon: Swords, tint: "border-live/30 bg-live/10 text-live" },
+  chart: { Icon: Trophy, tint: "border-gold/30 bg-gold/10 text-gold" },
+  founder: { Icon: Crown, tint: "border-gold/30 bg-gold/10 text-gold" },
+};
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
@@ -83,6 +101,8 @@ export function TalentHub({ handle, editable = false }: { handle: string; editab
   }
 
   const { creator, bio, followerCount, followingCount, totalLikes, clips } = data;
+  const { talentScore, scores, achievements } = data;
+  const tier = talentScore >= 85 ? "Elite" : talentScore >= 70 ? "Established" : "Rising";
 
   return (
     <div className="mx-auto max-w-md px-4 pt-6 pb-28">
@@ -129,6 +149,59 @@ export function TalentHub({ handle, editable = false }: { handle: string; editab
       </div>
 
       <p className="mt-4 text-sm leading-relaxed">{bio}</p>
+
+      {/* Talent Score — the transparent composite (PRD §6.2/§6.9). */}
+      <section className="border-line bg-surface mt-4 rounded-lg border p-4">
+        <div className="flex items-center justify-between">
+          <span className="text-muted flex items-center gap-1.5 text-sm font-medium">
+            <Gauge className="text-gold h-4 w-4" aria-hidden /> Talent Score
+          </span>
+          <span className="bg-gold/15 text-gold rounded-pill px-2.5 py-0.5 text-xs font-semibold">
+            {tier}
+          </span>
+        </div>
+        <p className="mt-1 text-4xl font-semibold tabular-nums">
+          {talentScore}
+          <span className="text-subtle text-lg font-normal"> / 100</span>
+        </p>
+        <ul className="mt-3 space-y-2">
+          {SCORE_META.map(({ key, short }) => (
+            <li key={key} className="flex items-center gap-3">
+              <span className="text-subtle w-16 shrink-0 text-xs">{short}</span>
+              <span className="bg-elevated h-1.5 flex-1 overflow-hidden rounded-full">
+                <span
+                  className={cn("block h-full rounded-full", scoreTone(scores[key]))}
+                  style={{ width: `${Math.round(scores[key])}%` }}
+                />
+              </span>
+              <span className="text-subtle w-7 text-right text-xs tabular-nums">
+                {Math.round(scores[key])}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* Achievements (soulbound badges). */}
+      {achievements.length > 0 && (
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {achievements.map((a) => {
+            const { Icon, tint } = ACHIEVEMENT_META[a.kind];
+            return (
+              <li
+                key={a.id}
+                className={cn(
+                  "rounded-pill flex items-center gap-1.5 border px-3 py-1.5 text-xs font-medium",
+                  tint,
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" aria-hidden />
+                {a.label}
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
       <div className="mt-4 flex gap-2">
         {editable ? (
