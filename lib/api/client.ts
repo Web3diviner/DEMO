@@ -6,6 +6,7 @@ import {
   publishResultSchema,
   myClipSchema,
   profileSchema,
+  followResultSchema,
   meSchema,
   walletSchema,
   earningsSummarySchema,
@@ -81,6 +82,7 @@ import {
   type PublishResult,
   type MyClip,
   type Profile,
+  type FollowResult,
   type Me,
   type Wallet,
   type EarningsSummary,
@@ -243,6 +245,14 @@ export const api = {
   profiles: {
     get(handle: string, signal?: AbortSignal): Promise<Profile> {
       return request(`/v1/profiles/${encodeURIComponent(handle)}`, profileSchema, { signal });
+    },
+    /** Follow or unfollow a creator. Returns server-truth following state + follower count. */
+    follow(handle: string, value: boolean): Promise<FollowResult> {
+      return request(`/v1/creators/${encodeURIComponent(handle)}/follow`, followResultSchema, {
+        method: "POST",
+        body: { value },
+        idempotencyKey: `follow:${handle}:${value}`,
+      });
     },
   },
   me: {

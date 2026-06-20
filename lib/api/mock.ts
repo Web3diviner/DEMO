@@ -39,6 +39,10 @@ const CREATORS = [
   { id: "c3", handle: "zainab.moves", displayName: "Zainab", campus: "ABU Zaria", verified: true },
 ];
 
+// Public-profile follow state (per session). Demo follower base shared across creators.
+const FOLLOWER_BASE = 12_400;
+const followedHandles = new Set<string>();
+
 // The signed-in user's own editable profile (mutable so edits persist within a session).
 // Overrides are merged into the public profile for the same handle.
 const me = {
@@ -1124,6 +1128,7 @@ export async function handleMock(
     });
     // Merge the signed-in user's edits into their own public profile.
     const mine = handle === me.handle;
+    const following = followedHandles.has(handle);
     return {
       creator: {
         ...creator,
@@ -1132,11 +1137,20 @@ export async function handleMock(
         avatarUrl: null,
       },
       bio: mine ? me.bio : "Campus performer. Booking via DMs. 🎤",
-      followerCount: 12_400,
+      followerCount: FOLLOWER_BASE + (following ? 1 : 0),
       followingCount: 312,
       totalLikes: 248_900,
+      viewer: { following },
       clips,
     };
+  }
+
+  if (/^\/v1\/creators\/[^/]+\/follow$/.test(route) && opts.method === "POST") {
+    const handle = decodeURIComponent(route.split("/")[3]);
+    const { value } = opts.body as { value: boolean };
+    if (value) followedHandles.add(handle);
+    else followedHandles.delete(handle);
+    return { following: value, followerCount: FOLLOWER_BASE + (value ? 1 : 0) };
   }
 
   if (route === "/v1/me" && (opts.method ?? "GET") === "GET") {

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BadgeCheck,
   Bell,
@@ -19,6 +19,7 @@ import {
 import { api } from "@/lib/api/client";
 import { useFlag } from "@/lib/flags-provider";
 import { Button } from "@/components/ui/button";
+import type { Profile } from "@/lib/api/types";
 
 const compact = new Intl.NumberFormat("en-NG", { notation: "compact", maximumFractionDigits: 1 });
 
@@ -32,11 +33,38 @@ function Stat({ label, value }: { label: string; value: number }) {
 }
 
 export function TalentHub({ handle, editable = false }: { handle: string; editable?: boolean }) {
+  const qc = useQueryClient();
   const marketplaceOn = useFlag("marketplace");
   const premiumOn = useFlag("premium");
   const { data, status } = useQuery({
     queryKey: ["profile", handle],
     queryFn: ({ signal }) => api.profiles.get(handle, signal),
+  });
+
+  // Follow/unfollow — optimistic toggle of the viewer state + follower count, reconciled with the
+  // server's truth on success.
+  const follow = useMutation({
+    mutationFn: (value: boolean) => api.profiles.follow(handle, value),
+    onMutate: (value) => {
+      const prev = qc.getQueryData<Profile>(["profile", handle]);
+      if (prev)
+        qc.setQueryData<Profile>(["profile", handle], {
+          ...prev,
+          viewer: { following: value },
+          followerCount: prev.followerCount + (value ? 1 : -1),
+        });
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => ctx?.prev && qc.setQueryData(["profile", handle], ctx.prev),
+    onSuccess: (res) => {
+      const cur = qc.getQueryData<Profile>(["profile", handle]);
+      if (cur)
+        qc.setQueryData<Profile>(["profile", handle], {
+          ...cur,
+          viewer: { following: res.following },
+          followerCount: res.followerCount,
+        });
+    },
   });
 
   if (status === "pending") {
@@ -100,7 +128,14 @@ export function TalentHub({ handle, editable = false }: { handle: string; editab
           </Link>
         ) : (
           <>
-            <Button block>Follow</Button>
+            <Button
+              block
+              variant={data.viewer.following ? "secondary" : "primary"}
+              aria-pressed={data.viewer.following}
+              onClick={() => follow.mutate(!data.viewer.following)}
+            >
+              {data.viewer.following ? "Following" : "Follow"}
+            </Button>
             <Link
               href="/dms"
               className="border-line text-fg rounded-pill flex h-11 flex-1 items-center justify-center border font-medium active:scale-[0.98]"

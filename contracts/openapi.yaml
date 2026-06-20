@@ -158,6 +158,30 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Profile" }
+  /v1/creators/{handle}/follow:
+    post:
+      summary: Follow or unfollow a creator
+      parameters:
+        - { name: handle, in: path, required: true, schema: { type: string } }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [value]
+              properties:
+                value: { type: boolean, description: "true to follow, false to unfollow" }
+      responses:
+        "200":
+          description: Updated following state + follower count
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FollowResult" }
   /v1/me:
     get:
       summary: The signed-in user's own editable profile
@@ -1649,13 +1673,18 @@ components:
         verified: { type: boolean }
     Profile:
       type: object
-      required: [creator, bio, followerCount, followingCount, totalLikes, clips]
+      required: [creator, bio, followerCount, followingCount, totalLikes, viewer, clips]
       properties:
         creator: { $ref: "#/components/schemas/Creator" }
         bio: { type: string }
         followerCount: { type: integer }
         followingCount: { type: integer }
         totalLikes: { type: integer }
+        viewer:
+          type: object
+          required: [following]
+          properties:
+            following: { type: boolean }
         clips:
           type: array
           items:
@@ -1666,3 +1695,9 @@ components:
               posterUrl: { type: string, format: uri }
               plays: { type: integer }
               battleId: { type: string, nullable: true }
+    FollowResult:
+      type: object
+      required: [following, followerCount]
+      properties:
+        following: { type: boolean }
+        followerCount: { type: integer }

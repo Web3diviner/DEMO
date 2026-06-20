@@ -96,6 +96,8 @@ export const profileSchema = z.object({
   followerCount: z.number().int(),
   followingCount: z.number().int(),
   totalLikes: z.number().int(),
+  /** The signed-in viewer's relationship to this creator. */
+  viewer: z.object({ following: z.boolean() }),
   clips: z.array(
     z.object({
       id: z.string(),
@@ -104,6 +106,12 @@ export const profileSchema = z.object({
       battleId: z.string().nullable(),
     }),
   ),
+});
+
+/** Result of a follow/unfollow toggle (server-truth following state + count). */
+export const followResultSchema = z.object({
+  following: z.boolean(),
+  followerCount: z.number().int(),
 });
 
 /** The signed-in user's own editable profile (the subset they can change). */
@@ -728,6 +736,7 @@ export type ChartBoard = z.infer<typeof chartBoardSchema>;
 export type ChartEntry = z.infer<typeof chartEntrySchema>;
 export type Chart = z.infer<typeof chartSchema>;
 export type Profile = z.infer<typeof profileSchema>;
+export type FollowResult = z.infer<typeof followResultSchema>;
 export type Me = z.infer<typeof meSchema>;
 export type Wallet = z.infer<typeof walletSchema>;
 export type EarningSource = z.infer<typeof earningSourceSchema>;
