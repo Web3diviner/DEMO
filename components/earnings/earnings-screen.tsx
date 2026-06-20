@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
+  ArrowLeftRight,
   ArrowUpFromLine,
   Coins,
   Crown,
@@ -19,9 +20,15 @@ import { fromMinor, format } from "@/lib/money";
 import { ago } from "@/lib/utils/time";
 import { Button } from "@/components/ui/button";
 import { WithdrawSheet } from "./withdraw-sheet";
+import { ConvertSheet } from "./convert-sheet";
 import { PayoutMethodSheet } from "./payout-method-sheet";
 import { cn } from "@/lib/utils/cn";
-import type { EarningEntry, EarningSource, EarningsSummary } from "@/lib/api/types";
+import type {
+  ConversionResult,
+  EarningEntry,
+  EarningSource,
+  EarningsSummary,
+} from "@/lib/api/types";
 
 const SOURCE: Record<EarningSource, React.ComponentType<{ className?: string }>> = {
   tip: Coins,
@@ -90,6 +97,7 @@ function EntryRow({ entry }: { entry: EarningEntry }) {
 export function EarningsScreen() {
   const qc = useQueryClient();
   const [withdrawOpen, setWithdrawOpen] = React.useState(false);
+  const [convertOpen, setConvertOpen] = React.useState(false);
   const [payoutOpen, setPayoutOpen] = React.useState(false);
 
   const { data = PLACEHOLDER, status } = useQuery({
@@ -103,6 +111,12 @@ export function EarningsScreen() {
     qc.setQueryData<{ credits: unknown; earnings: unknown }>(["wallet"], (w) =>
       w ? { ...w, earnings: summary.available } : w,
     );
+  };
+
+  const onConverted = (res: ConversionResult) => {
+    qc.setQueryData(["earnings"], res.summary);
+    // Both balances move: earnings fall, Credits rise. Push server-truth into the wallet cache.
+    qc.setQueryData(["wallet"], res.wallet);
   };
 
   return (
@@ -127,14 +141,19 @@ export function EarningsScreen() {
           <Stat label="Pending" value={format(data.pending)} tone="muted" />
           <Stat label="Lifetime" value={format(data.lifetime)} />
         </div>
-        <Button
-          block
-          className="mt-4"
-          disabled={data.available.minor === 0}
-          onClick={() => setWithdrawOpen(true)}
-        >
-          <ArrowUpFromLine className="mr-1 h-4 w-4" aria-hidden /> Withdraw
-        </Button>
+        <div className="mt-4 flex gap-2">
+          <Button block disabled={data.available.minor === 0} onClick={() => setWithdrawOpen(true)}>
+            <ArrowUpFromLine className="mr-1 h-4 w-4" aria-hidden /> Withdraw
+          </Button>
+          <Button
+            block
+            variant="secondary"
+            disabled={data.available.minor < 500}
+            onClick={() => setConvertOpen(true)}
+          >
+            <ArrowLeftRight className="mr-1 h-4 w-4" aria-hidden /> To Credits
+          </Button>
+        </div>
       </section>
 
       {/* Payout method */}
@@ -189,6 +208,12 @@ export function EarningsScreen() {
         available={data.available}
         payoutMethod={data.payoutMethod}
         onConfirmed={onWithdrawn}
+      />
+      <ConvertSheet
+        open={convertOpen}
+        onClose={() => setConvertOpen(false)}
+        available={data.available}
+        onConverted={onConverted}
       />
       <PayoutMethodSheet
         open={payoutOpen}

@@ -305,6 +305,14 @@ export const withdrawalResultSchema = z.object({
   summary: earningsSummarySchema,
 });
 
+/** Convert earnings → spend-Credits (PRD §7.2). Internal + instant: returns both balances. */
+export const conversionResultSchema = z.object({
+  /** Credits gained from the conversion. */
+  credits: z.number().int(),
+  summary: earningsSummarySchema,
+  wallet: walletSchema,
+});
+
 /** A purchasable Credit pack. Prices are server-quoted (NGN), never computed client-side. */
 export const creditPackSchema = z.object({
   id: z.string(),
@@ -814,6 +822,7 @@ export type EarningEntry = z.infer<typeof earningEntrySchema>;
 export type PayoutMethod = z.infer<typeof payoutMethodSchema>;
 export type EarningsSummary = z.infer<typeof earningsSummarySchema>;
 export type WithdrawalResult = z.infer<typeof withdrawalResultSchema>;
+export type ConversionResult = z.infer<typeof conversionResultSchema>;
 export type Bank = z.infer<typeof bankSchema>;
 export type ResolvedAccount = z.infer<typeof resolvedAccountSchema>;
 export type AnalyticsRange = z.infer<typeof analyticsRangeSchema>;

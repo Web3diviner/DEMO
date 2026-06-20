@@ -431,6 +431,35 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/WithdrawalResult" }
+  /v1/earnings/convert:
+    post:
+      summary: Convert available earnings into spendable Credits (internal, instant)
+      description: >
+        Moves money the other way from a withdrawal: debits NGN earnings and credits the fan
+        Credit balance at the platform rate (1 Credit = ₦5). Whole Credits only; any kobo that
+        doesn't convert cleanly stays in earnings. Returns both server-truth balances.
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amountMinor]
+              properties:
+                amountMinor:
+                  type: integer
+                  description: Amount in NGN kobo to convert; must not exceed the available balance.
+      responses:
+        "200":
+          description: Conversion applied, with Credits gained and both updated balances
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConversionResult" }
   /v1/banks:
     get:
       summary: Banks available for payout
@@ -1363,6 +1392,13 @@ components:
         reference: { type: string }
         status: { type: string, enum: [processing, failed] }
         summary: { $ref: "#/components/schemas/EarningsSummary" }
+    ConversionResult:
+      type: object
+      required: [credits, summary, wallet]
+      properties:
+        credits: { type: integer, description: Whole Credits gained from the conversion }
+        summary: { $ref: "#/components/schemas/EarningsSummary" }
+        wallet: { $ref: "#/components/schemas/Wallet" }
     Bank:
       type: object
       required: [code, name]

@@ -1348,6 +1348,43 @@ export async function handleMock(
     };
   }
 
+  if (route === "/v1/earnings/convert" && opts.method === "POST") {
+    const { amountMinor } = opts.body as { amountMinor: number };
+    if (!Number.isInteger(amountMinor) || amountMinor <= 0) {
+      throw new Error("Enter a valid amount to convert");
+    }
+    if (amountMinor > wallet.earnings.minor) {
+      throw new Error("That's more than your available balance");
+    }
+    // 1 Credit = ₦5 (500 kobo), matching the 100-credit pack (₦500). Floor to whole Credits and only
+    // debit the exact kobo that converts cleanly, so no fractional earnings vanish.
+    const credits = Math.floor(amountMinor / 500);
+    if (credits < 1) throw new Error("That's too small to convert — ₦5 buys 1 Credit");
+    const debitMinor = credits * 500;
+    wallet.earnings = { ...wallet.earnings, minor: wallet.earnings.minor - debitMinor };
+    wallet.credits = { ...wallet.credits, minor: wallet.credits.minor + credits };
+    const entry: MockEarningEntry = {
+      id: `ee_cv_${Date.now()}`,
+      source: "withdrawal",
+      label: `Converted to ${credits} Credits`,
+      amount: ngn(-debitMinor),
+      createdAt: iso(0),
+      status: "settled",
+    };
+    earnings.entries.unshift(entry);
+    return {
+      credits,
+      summary: {
+        available: wallet.earnings,
+        pending: earnings.pending,
+        lifetime: earnings.lifetime,
+        payoutMethod: earnings.payoutMethod,
+        entries: earnings.entries,
+      },
+      wallet,
+    };
+  }
+
   if (route === "/v1/earnings/withdraw" && opts.method === "POST") {
     const { amountMinor } = opts.body as { amountMinor: number };
     if (!Number.isInteger(amountMinor) || amountMinor <= 0) {

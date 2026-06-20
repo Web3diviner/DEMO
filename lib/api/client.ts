@@ -17,6 +17,7 @@ import {
   walletSchema,
   earningsSummarySchema,
   withdrawalResultSchema,
+  conversionResultSchema,
   bankSchema,
   resolvedAccountSchema,
   creditPackSchema,
@@ -101,6 +102,7 @@ import {
   type Wallet,
   type EarningsSummary,
   type WithdrawalResult,
+  type ConversionResult,
   type Bank,
   type ResolvedAccount,
   type CreditPack,
@@ -411,6 +413,14 @@ export const api = {
     /** Creator earnings: withdrawable/pending/lifetime balances, payout method, recent entries. */
     summary(signal?: AbortSignal): Promise<EarningsSummary> {
       return request(`/v1/earnings`, earningsSummarySchema, { signal });
+    },
+    /** Convert `amountMinor` (NGN kobo) of earnings into spend-Credits. Server-truth. */
+    convert(amountMinor: number): Promise<ConversionResult> {
+      return request(`/v1/earnings/convert`, conversionResultSchema, {
+        method: "POST",
+        body: { amountMinor },
+        idempotencyKey: `convert:${amountMinor}:${Date.now()}`,
+      });
     },
     /** Request a withdrawal of `amountMinor` (NGN kobo). Server-truth; never optimistic. */
     withdraw(amountMinor: number): Promise<WithdrawalResult> {

@@ -22,6 +22,24 @@ test("a creator can withdraw available earnings", async ({ page }) => {
   await expect(page.getByText(/withdrawal to gtbank/i)).toBeVisible();
 });
 
+test("a creator can convert earnings into spendable Credits", async ({ page }) => {
+  await page.goto("/earnings");
+
+  await page.getByRole("button", { name: /to credits/i }).click();
+  const dialog = page.getByRole("dialog", { name: /convert to credits/i });
+  await expect(dialog).toBeVisible();
+
+  // The preview quotes whole Credits, and the confirm button names the amount.
+  const confirm = dialog.getByRole("button", { name: /^convert to [\d,]+ credits$/i });
+  await expect(confirm).toBeEnabled();
+  await confirm.click();
+
+  // Server-confirmed success, and a settled conversion lands in the ledger.
+  await expect(page.getByText(/\+[\d,]+ credits/i)).toBeVisible();
+  await page.getByRole("button", { name: /^done$/i }).click();
+  await expect(page.getByText(/converted to [\d,]+ credits/i)).toBeVisible();
+});
+
 test("a creator can change the payout account after confirming the name", async ({ page }) => {
   await page.goto("/earnings");
 
