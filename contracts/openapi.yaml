@@ -776,6 +776,20 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Chart" }
+  /v1/analytics:
+    get:
+      summary: A creator's performance dashboard for the selected range (server-computed)
+      parameters:
+        - name: range
+          in: query
+          required: false
+          schema: { type: string, enum: ["7d", "28d", "90d"], default: "7d" }
+      responses:
+        "200":
+          description: Creator analytics
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatorAnalytics" }
 components:
   schemas:
     Money:
@@ -1347,6 +1361,60 @@ components:
         entries:
           type: array
           items: { $ref: "#/components/schemas/ChartEntry" }
+    CountMetric:
+      type: object
+      required: [value, delta]
+      properties:
+        value: { type: number }
+        delta: { type: number, description: "% change vs the previous period" }
+    EarningMetric:
+      type: object
+      required: [value, delta]
+      properties:
+        value: { $ref: "#/components/schemas/Money" }
+        delta: { type: number }
+    AnalyticsPoint:
+      type: object
+      required: [date, views]
+      properties:
+        date: { type: string, format: date-time }
+        views: { type: integer }
+    AnalyticsClip:
+      type: object
+      required: [id, caption, views, likes]
+      properties:
+        id: { type: string }
+        caption: { type: string }
+        views: { type: integer }
+        likes: { type: integer }
+    AudienceCampus:
+      type: object
+      required: [name, share]
+      properties:
+        name: { type: string }
+        share: { type: number, description: "0..1 share of audience" }
+    CreatorAnalytics:
+      type: object
+      required: [range, metrics, series, topClips, topCampuses]
+      properties:
+        range: { type: string, enum: ["7d", "28d", "90d"] }
+        metrics:
+          type: object
+          required: [views, watchTimeHours, followers, earnings]
+          properties:
+            views: { $ref: "#/components/schemas/CountMetric" }
+            watchTimeHours: { $ref: "#/components/schemas/CountMetric" }
+            followers: { $ref: "#/components/schemas/CountMetric" }
+            earnings: { $ref: "#/components/schemas/EarningMetric" }
+        series:
+          type: array
+          items: { $ref: "#/components/schemas/AnalyticsPoint" }
+        topClips:
+          type: array
+          items: { $ref: "#/components/schemas/AnalyticsClip" }
+        topCampuses:
+          type: array
+          items: { $ref: "#/components/schemas/AudienceCampus" }
     CreditPack:
       type: object
       required: [id, credits, price, badge]

@@ -160,6 +160,47 @@ export const resolvedAccountSchema = z.object({
   accountName: z.string(),
 });
 
+/* ── Creator analytics (the "studio" — how a creator's content is performing) ──
+   Each headline metric carries a `delta`: the percentage change vs the previous
+   period of the same length (positive = up). `series` is the daily view count for
+   the selected range, for the trend chart. All server-computed; the client only renders. */
+export const analyticsRangeSchema = z.enum(["7d", "28d", "90d"]);
+
+const countMetricSchema = z.object({ value: z.number(), delta: z.number() });
+
+export const analyticsMetricsSchema = z.object({
+  views: countMetricSchema,
+  watchTimeHours: countMetricSchema,
+  followers: countMetricSchema,
+  earnings: z.object({ value: moneySchema, delta: z.number() }), // NGN
+});
+
+export const analyticsPointSchema = z.object({
+  date: z.string(),
+  views: z.number().int(),
+});
+
+export const analyticsClipSchema = z.object({
+  id: z.string(),
+  caption: z.string(),
+  views: z.number().int(),
+  likes: z.number().int(),
+});
+
+export const audienceCampusSchema = z.object({
+  name: z.string(),
+  /** Share of the audience, 0..1. */
+  share: z.number(),
+});
+
+export const creatorAnalyticsSchema = z.object({
+  range: analyticsRangeSchema,
+  metrics: analyticsMetricsSchema,
+  series: z.array(analyticsPointSchema),
+  topClips: z.array(analyticsClipSchema),
+  topCampuses: z.array(audienceCampusSchema),
+});
+
 export const withdrawalResultSchema = z.object({
   reference: z.string(),
   status: z.enum(["processing", "failed"]),
@@ -628,6 +669,11 @@ export type EarningsSummary = z.infer<typeof earningsSummarySchema>;
 export type WithdrawalResult = z.infer<typeof withdrawalResultSchema>;
 export type Bank = z.infer<typeof bankSchema>;
 export type ResolvedAccount = z.infer<typeof resolvedAccountSchema>;
+export type AnalyticsRange = z.infer<typeof analyticsRangeSchema>;
+export type AnalyticsPoint = z.infer<typeof analyticsPointSchema>;
+export type AnalyticsClip = z.infer<typeof analyticsClipSchema>;
+export type AudienceCampus = z.infer<typeof audienceCampusSchema>;
+export type CreatorAnalytics = z.infer<typeof creatorAnalyticsSchema>;
 export type CreditPack = z.infer<typeof creditPackSchema>;
 export type TopUpIntent = z.infer<typeof topUpIntentSchema>;
 export type TopUpStatus = z.infer<typeof topUpStatusSchema>;

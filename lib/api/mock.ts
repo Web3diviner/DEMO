@@ -189,6 +189,45 @@ const earnings = {
   ] as MockEarningEntry[],
 };
 
+// Creator analytics. Deterministic so the dashboard is stable across reloads; series is a gently
+// rising trend with a weekly wobble. A real backend computes these from the event pipeline.
+const ANALYTICS_TOP_CLIPS = [
+  { id: "c1", caption: "Freestyle Friday 🎤", views: 48_200, likes: 6_100 },
+  { id: "c4", caption: "Lagos Nights (snippet)", views: 31_400, likes: 4_200 },
+  { id: "c7", caption: "Battle vs @tunde.flow", views: 27_800, likes: 5_300 },
+  { id: "c2", caption: "Dorm session 🎹", views: 19_600, likes: 2_100 },
+];
+const ANALYTICS_CAMPUSES = [
+  { name: "UNILAG", share: 0.34 },
+  { name: "UI Ibadan", share: 0.22 },
+  { name: "OAU", share: 0.17 },
+  { name: "ABU Zaria", share: 0.14 },
+  { name: "Others", share: 0.13 },
+];
+
+function buildAnalytics(range: "7d" | "28d" | "90d") {
+  const days = range === "7d" ? 7 : range === "28d" ? 28 : 90;
+  const series = Array.from({ length: days }, (_, i) => {
+    const t = i / days;
+    const base = 800 + t * 1400; // upward trend
+    const wobble = Math.sin(i * 1.1) * 180 + Math.cos(i * 0.5) * 90;
+    return { date: iso(-(days - 1 - i) * 86_400), views: Math.max(120, Math.round(base + wobble)) };
+  });
+  const totalViews = series.reduce((sum, p) => sum + p.views, 0);
+  return {
+    range,
+    metrics: {
+      views: { value: totalViews, delta: 12.4 },
+      watchTimeHours: { value: Math.round(totalViews * 0.045), delta: -3.2 },
+      followers: { value: Math.round(180 * (days / 7)), delta: 15.2 },
+      earnings: { value: ngn(totalViews * 12), delta: 9.7 },
+    },
+    series,
+    topClips: ANALYTICS_TOP_CLIPS,
+    topCampuses: ANALYTICS_CAMPUSES,
+  };
+}
+
 const CREDIT_PACKS = [
   { id: "pack_100", credits: 100, price: { currency: "NGN" as const, minor: 50_000 }, badge: null },
   {
@@ -1109,6 +1148,11 @@ export async function handleMock(
   if (/^\/v1\/charts\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
     const board = route.split("/")[3];
     return chartFor(board);
+  }
+
+  if (route === "/v1/analytics" && (opts.method ?? "GET") === "GET") {
+    const range = new URLSearchParams(query).get("range");
+    return buildAnalytics(range === "28d" || range === "90d" ? range : "7d");
   }
 
   if (route === "/v1/events" && (opts.method ?? "GET") === "GET") {

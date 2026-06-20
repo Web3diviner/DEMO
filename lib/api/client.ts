@@ -17,6 +17,7 @@ import {
   battleSchema,
   voteResultSchema,
   chartSchema,
+  creatorAnalyticsSchema,
   tipResultSchema,
   dmThreadSchema,
   dmThreadDetailSchema,
@@ -87,6 +88,8 @@ import {
   type VoteResult,
   type Chart,
   type ChartBoard,
+  type AnalyticsRange,
+  type CreatorAnalytics,
 } from "./types";
 
 /**
@@ -303,6 +306,12 @@ export const api = {
     get(board: ChartBoard, scope: string | null, signal?: AbortSignal): Promise<Chart> {
       const qs = scope ? `?scope=${encodeURIComponent(scope)}` : "";
       return request(`/v1/charts/${board}${qs}`, chartSchema, { signal });
+    },
+  },
+  analytics: {
+    /** A creator's performance dashboard for the selected range (server-computed). */
+    get(range: AnalyticsRange, signal?: AbortSignal): Promise<CreatorAnalytics> {
+      return request(`/v1/analytics?range=${range}`, creatorAnalyticsSchema, { signal });
     },
   },
   search: {

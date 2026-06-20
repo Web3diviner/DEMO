@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   BadgeCheck,
   Bell,
+  BarChart3,
   ChevronRight,
   Crown,
   Megaphone,
@@ -95,6 +96,21 @@ export function TalentHub({ handle }: { handle: string }) {
           Message
         </Link>
       </div>
+
+      {/* Creator studio (analytics) entry */}
+      <Link
+        href="/analytics"
+        className="border-line bg-surface mt-4 flex items-center gap-3 rounded-lg border p-3 active:scale-[0.99]"
+      >
+        <span className="bg-brand/15 text-brand grid h-9 w-9 shrink-0 place-items-center rounded-full">
+          <BarChart3 className="h-4 w-4" aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold">Studio</span>
+          <span className="text-subtle block text-xs">Views, watch time &amp; audience.</span>
+        </span>
+        <ChevronRight className="text-subtle h-4 w-4 shrink-0" aria-hidden />
+      </Link>
 
       {/* Activity / notifications entry */}
       <Link
