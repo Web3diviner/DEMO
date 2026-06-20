@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Crown,
   Film,
+  Fingerprint,
   Gauge,
   Megaphone,
   MoreHorizontal,
@@ -275,6 +276,22 @@ export function TalentHub({ handle, editable = false }: { handle: string; editab
               <span className="block text-sm font-semibold">Activity</span>
               <span className="text-subtle block text-xs">
                 Follows, tips, comments &amp; results.
+              </span>
+            </span>
+            <ChevronRight className="text-subtle h-4 w-4 shrink-0" aria-hidden />
+          </Link>
+
+          <Link
+            href="/id"
+            className="border-line bg-surface mt-4 flex items-center gap-3 rounded-lg border p-3 active:scale-[0.99]"
+          >
+            <span className="bg-gold/15 text-gold grid h-9 w-9 shrink-0 place-items-center rounded-full">
+              <Fingerprint className="h-4 w-4" aria-hidden />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold">Your DEMO ID</span>
+              <span className="text-subtle block text-xs">
+                Credentials, badges &amp; passes you own.
               </span>
             </span>
             <ChevronRight className="text-subtle h-4 w-4 shrink-0" aria-hidden />

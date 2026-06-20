@@ -12,6 +12,7 @@ import {
   profileSchema,
   followResultSchema,
   meSchema,
+  ownershipSummarySchema,
   privacySettingsSchema,
   blockedUserSchema,
   walletSchema,
@@ -97,6 +98,7 @@ import {
   type Profile,
   type FollowResult,
   type Me,
+  type OwnershipSummary,
   type PrivacySettings,
   type BlockedUser,
   type Wallet,
@@ -369,6 +371,10 @@ export const api = {
     /** Update editable profile fields. Returns the saved profile. */
     update(input: { displayName: string; bio: string; campus: string | null }): Promise<Me> {
       return request(`/v1/me`, meSchema, { method: "PATCH", body: input });
+    },
+    /** The user's DEMO ID — their invisible custodial wallet and everything they own (PRD §8.1). */
+    ownership(signal?: AbortSignal): Promise<OwnershipSummary> {
+      return request(`/v1/me/ownership`, ownershipSummarySchema, { signal });
     },
   },
   privacy: {

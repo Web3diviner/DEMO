@@ -164,6 +164,40 @@ export const meSchema = z.object({
   verified: z.boolean(),
 });
 
+/* ── DEMO ID & invisible ownership (PRD §8.1) ─────────────────────────────────
+   The custodial wallet is invisible: no seed phrase, no gas, no chain jargon. This surface
+   makes what the user truly *owns* tangible — a verifiable campus identity plus the soulbound
+   credentials and passes minted on their behalf. The UI reads these entitlements, never a chain. */
+
+/** One owned, on-chain-backed item surfaced in human terms. */
+export const ownedItemSchema = z.object({
+  id: z.string(),
+  /** credential = soulbound proof (verification, campus ID); collectible = earned badge/trophy;
+   *  pass = a redeemable entitlement (event ticket, unlock). */
+  kind: z.enum(["credential", "collectible", "pass"]),
+  title: z.string(),
+  subtitle: z.string(),
+  issuedAt: z.string(),
+  /** Masked token reference, shown only in the "details" affordance — never required to use it. */
+  tokenRef: z.string(),
+  /** Soulbound items can't be sold or transferred (most credentials). */
+  soulbound: z.boolean(),
+});
+
+/** The signed-in user's DEMO ID: their identity anchor + everything they own. */
+export const ownershipSummarySchema = z.object({
+  /** Human-readable decentralised identifier, e.g. "did:demo:ada.beats". */
+  did: z.string(),
+  handle: z.string(),
+  /** Masked custodial address, e.g. "0x7a…F3c2". The user never handles keys. */
+  address: z.string(),
+  network: z.string(),
+  /** Always true in this build — the wallet is custodial, with sponsored gas. */
+  custodial: z.boolean(),
+  issuedAt: z.string(),
+  items: z.array(ownedItemSchema),
+});
+
 /** Wallet — fan Credits (spendable, non-cashable) kept DISTINCT from creator earnings. */
 export const walletSchema = z.object({
   credits: moneySchema, // CREDITS
@@ -816,6 +850,8 @@ export type Achievement = z.infer<typeof achievementSchema>;
 export type Profile = z.infer<typeof profileSchema>;
 export type FollowResult = z.infer<typeof followResultSchema>;
 export type Me = z.infer<typeof meSchema>;
+export type OwnedItem = z.infer<typeof ownedItemSchema>;
+export type OwnershipSummary = z.infer<typeof ownershipSummarySchema>;
 export type Wallet = z.infer<typeof walletSchema>;
 export type EarningSource = z.infer<typeof earningSourceSchema>;
 export type EarningEntry = z.infer<typeof earningEntrySchema>;

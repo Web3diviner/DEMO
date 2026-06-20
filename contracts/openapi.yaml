@@ -315,6 +315,19 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Me" }
+  /v1/me/ownership:
+    get:
+      summary: The user's DEMO ID — invisible custodial wallet and owned items
+      description: >
+        Surfaces invisible on-chain ownership (PRD §8.1) in plain language: an identity anchor
+        plus soulbound credentials, collectibles and passes. The client reads entitlements here;
+        it never queries a chain, and the user never handles keys or gas.
+      responses:
+        "200":
+          description: Ownership summary
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OwnershipSummary" }
   /v1/privacy:
     get:
       summary: Account privacy controls
@@ -2017,6 +2030,30 @@ components:
         campus: { type: string, nullable: true }
         avatarUrl: { type: string, format: uri, nullable: true }
         verified: { type: boolean }
+    OwnedItem:
+      type: object
+      required: [id, kind, title, subtitle, issuedAt, tokenRef, soulbound]
+      properties:
+        id: { type: string }
+        kind: { type: string, enum: [credential, collectible, pass] }
+        title: { type: string }
+        subtitle: { type: string }
+        issuedAt: { type: string, format: date-time }
+        tokenRef: { type: string, description: Masked token reference, shown only on demand }
+        soulbound: { type: boolean, description: Non-transferable when true }
+    OwnershipSummary:
+      type: object
+      required: [did, handle, address, network, custodial, issuedAt, items]
+      properties:
+        did: { type: string, description: Human-readable DID, e.g. did:demo:ada.beats }
+        handle: { type: string }
+        address: { type: string, description: Masked custodial address }
+        network: { type: string }
+        custodial: { type: boolean, description: Invisible wallet — no seed phrase, sponsored gas }
+        issuedAt: { type: string, format: date-time }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/OwnedItem" }
     Achievement:
       type: object
       required: [id, label, kind]

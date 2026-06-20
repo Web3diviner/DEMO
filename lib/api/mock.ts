@@ -1264,6 +1264,71 @@ export async function handleMock(
     return me;
   }
 
+  if (route === "/v1/me/ownership" && (opts.method ?? "GET") === "GET") {
+    // The DEMO ID: an invisible custodial wallet surfaced as plain-language ownership (PRD §8.1).
+    // Items reflect server-side entitlement state — verification, soulbound badges, event passes.
+    const items = [
+      {
+        id: "own_campus",
+        kind: "credential" as const,
+        title: "Campus Identity",
+        subtitle: `${me.campus ?? "Student"} · verified student`,
+        issuedAt: iso(-86_400 * 210),
+        tokenRef: "DEMO-ID #0x0A91",
+        soulbound: true,
+      },
+      ...(me.verified
+        ? [
+            {
+              id: "own_creator",
+              kind: "credential" as const,
+              title: "Verified Creator",
+              subtitle: "Soulbound proof · $1 verification",
+              issuedAt: iso(-86_400 * 64),
+              tokenRef: "VC-SBT #0x1F3c",
+              soulbound: true,
+            },
+          ]
+        : []),
+      {
+        id: "own_founder",
+        kind: "collectible" as const,
+        title: "Founding Member",
+        subtitle: "Joined in the first 10,000",
+        issuedAt: iso(-86_400 * 205),
+        tokenRef: "FND #0142",
+        soulbound: true,
+      },
+      {
+        id: "own_battle",
+        kind: "collectible" as const,
+        title: "Battle Champion — Week 7",
+        subtitle: "Won the campus dance bracket",
+        issuedAt: iso(-86_400 * 12),
+        tokenRef: "BTL #0731",
+        soulbound: false,
+      },
+      {
+        id: "own_pass",
+        kind: "pass" as const,
+        title: "UNILAG Showcase '26",
+        subtitle: "Event pass · admits one",
+        issuedAt: iso(-86_400 * 3),
+        tokenRef: "PASS #4480",
+        soulbound: false,
+      },
+    ];
+    return {
+      did: `did:demo:${me.handle}`,
+      handle: me.handle,
+      address: "0x7a4C…F3c2",
+      network: "Demo Chain (testnet)",
+      custodial: true,
+      issuedAt: iso(-86_400 * 210),
+      items,
+    };
+  }
+
   if (route === "/v1/me" && opts.method === "PATCH") {
     const { displayName, bio, campus } = opts.body as {
       displayName: string;
