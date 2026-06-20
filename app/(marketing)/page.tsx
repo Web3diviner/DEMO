@@ -1,6 +1,6 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Wordmark } from "@/components/ui/logo";
-import { HeroMusician } from "@/components/marketing/hero-musician";
 
 /**
  * Landing — static, RSC, near-zero client JS. First impression on a cold cellular connection must
@@ -20,10 +20,26 @@ export default function Landing() {
         className="pointer-events-none absolute -top-40 h-96 w-96 rounded-full opacity-40 blur-3xl"
         style={{ background: "radial-gradient(circle, var(--brand), transparent 70%)" }}
       />
-      <HeroMusician
-        size={232}
-        className="mb-6 [filter:drop-shadow(0_16px_40px_oklch(0_0_0/0.45))]"
-      />
+      {/*
+        Hero photo. Licensed under the Unsplash License (free commercial use, no attribution
+        required): https://unsplash.com/photos/woman-singing-on-stage-9SoCnyQmkzI
+        Self-hosted (same-origin, CSP img-src 'self') and served through next/image so the device
+        only ever downloads a right-sized, modern-format crop — fast on cellular, no layout shift.
+      */}
+      <div className="ring-gold/25 shadow-3 relative mb-6 aspect-[4/5] w-full max-w-[15rem] overflow-hidden rounded-[1.75rem] ring-1">
+        <Image
+          src="/hero-musician.jpg"
+          alt="A campus performer singing into a microphone under a stage spotlight"
+          fill
+          priority
+          sizes="240px"
+          className="object-cover"
+        />
+        <div
+          aria-hidden
+          className="from-canvas/80 absolute inset-0 bg-gradient-to-t via-transparent to-transparent"
+        />
+      </div>
       <Wordmark markSize={36} className="mb-5 text-2xl" />
       <span className="rounded-pill border-line text-muted mb-4 border px-3 py-1 text-xs font-medium">
         Naija campus talent · live now
