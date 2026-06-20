@@ -992,6 +992,174 @@ const modQueue: MockModItem[] = [
   },
 ];
 
+// ── Admin: Treasury & Risk (money-integrity console, staff-only) ─────────────
+// Server-truth ledger figures in integer minor units. The console reads; it never computes money.
+const ngnMoney = (minor: number) => ({ currency: "NGN" as const, minor });
+const ledgerTotals = {
+  grossVolume: ngnMoney(48_215_000), // ₦482,150 cash in (top-ups)
+  creditsInCirculation: { currency: "CREDITS" as const, minor: 184_320 },
+  creatorPayable: ngnMoney(12_640_000), // ₦126,400 owed out
+  platformRevenue: ngnMoney(6_180_500), // ₦61,805 commission + rake
+  refunded: ngnMoney(415_000), // ₦4,150 reversed
+};
+
+type MockLedgerEntry = {
+  id: string;
+  kind:
+    | "topup"
+    | "tip"
+    | "battle"
+    | "market"
+    | "conversion"
+    | "withdrawal"
+    | "commission"
+    | "refund";
+  description: string;
+  amount: { currency: "NGN" | "CREDITS"; minor: number };
+  account: "fan" | "creator" | "platform";
+  counterparty: string | null;
+  createdAt: string;
+  flagged: boolean;
+};
+
+const ledgerEntries: MockLedgerEntry[] = [
+  {
+    id: "lg_1",
+    kind: "topup",
+    description: "Credit pack — 550 Credits",
+    amount: ngnMoney(250_000),
+    account: "fan",
+    counterparty: "kemi.vibes",
+    createdAt: iso(-60 * 4),
+    flagged: false,
+  },
+  {
+    id: "lg_2",
+    kind: "tip",
+    description: "Tip to creator",
+    amount: { currency: "CREDITS" as const, minor: 200 },
+    account: "creator",
+    counterparty: "ada.beats",
+    createdAt: iso(-60 * 26),
+    flagged: false,
+  },
+  {
+    id: "lg_3",
+    kind: "commission",
+    description: "Marketplace commission (10%)",
+    amount: ngnMoney(18_000),
+    account: "platform",
+    counterparty: "tunde.flow",
+    createdAt: iso(-60 * 52),
+    flagged: false,
+  },
+  {
+    id: "lg_4",
+    kind: "battle",
+    description: "Battle votes — rake to prize pool",
+    amount: { currency: "CREDITS" as const, minor: 1_240 },
+    account: "platform",
+    counterparty: null,
+    createdAt: iso(-60 * 90),
+    flagged: false,
+  },
+  {
+    id: "lg_5",
+    kind: "topup",
+    description: "Credit pack — 1,200 Credits",
+    amount: ngnMoney(500_000),
+    account: "fan",
+    counterparty: "newbie.0042",
+    createdAt: iso(-60 * 95),
+    flagged: true, // velocity rule touched this one
+  },
+  {
+    id: "lg_6",
+    kind: "withdrawal",
+    description: "Payout to GTBank ••••4471",
+    amount: ngnMoney(-1_500_000),
+    account: "creator",
+    counterparty: "zainab.moves",
+    createdAt: iso(-60 * 140),
+    flagged: false,
+  },
+  {
+    id: "lg_7",
+    kind: "conversion",
+    description: "Earnings → 500 Credits",
+    amount: ngnMoney(-250_000),
+    account: "creator",
+    counterparty: "ada.beats",
+    createdAt: iso(-60 * 180),
+    flagged: false,
+  },
+  {
+    id: "lg_8",
+    kind: "refund",
+    description: "Disputed top-up reversed",
+    amount: ngnMoney(-50_000),
+    account: "fan",
+    counterparty: "newbie.0042",
+    createdAt: iso(-60 * 240),
+    flagged: true,
+  },
+];
+
+type MockFraudSignal = {
+  id: string;
+  type: "velocity" | "chargeback" | "self_dealing" | "multi_account" | "payout_mismatch";
+  severity: "low" | "medium" | "high";
+  summary: string;
+  subject: { handle: string; displayName: string };
+  amount: { currency: "NGN" | "CREDITS"; minor: number } | null;
+  detectedAt: string;
+  status: "open" | "cleared" | "frozen" | "escalated";
+};
+
+const fraudSignals: MockFraudSignal[] = [
+  {
+    id: "fr_1",
+    type: "velocity",
+    severity: "high",
+    summary: "8 top-ups totalling ₦42,000 in 11 minutes from one device — far above normal pace.",
+    subject: { handle: "newbie.0042", displayName: "New Account" },
+    amount: ngnMoney(4_200_000),
+    detectedAt: iso(-60 * 18),
+    status: "open",
+  },
+  {
+    id: "fr_2",
+    type: "self_dealing",
+    severity: "medium",
+    summary: "Tips cycling between two linked accounts, then converted to Credits — possible wash.",
+    subject: { handle: "promo.king", displayName: "Promo King" },
+    amount: { currency: "CREDITS" as const, minor: 3_000 },
+    detectedAt: iso(-60 * 130),
+    status: "open",
+  },
+  {
+    id: "fr_3",
+    type: "payout_mismatch",
+    severity: "high",
+    summary: "Payout bank account name doesn't match the verified KYC identity on file.",
+    subject: { handle: "zainab.moves", displayName: "Zainab" },
+    amount: ngnMoney(1_500_000),
+    detectedAt: iso(-60 * 200),
+    status: "open",
+  },
+  {
+    id: "fr_4",
+    type: "multi_account",
+    severity: "low",
+    summary:
+      "3 accounts share a device fingerprint; one referred the others for ambassador credit.",
+    subject: { handle: "campus.deals", displayName: "Campus Deals" },
+    amount: null,
+    detectedAt: iso(-60 * 320),
+    status: "open",
+  },
+];
+
 // ── Search & trends (PRD §6.1) ───────────────────────────────────────────────
 const TRENDS = [
   { tag: "freshersweek", posts: 4820 },
@@ -1773,6 +1941,28 @@ export async function handleMock(
       escalate: "escalated",
     };
     return { id, status: statusMap[action] ?? "approved" };
+  }
+
+  if (route === "/v1/admin/ledger" && (opts.method ?? "GET") === "GET") {
+    return { totals: ledgerTotals, entries: ledgerEntries };
+  }
+
+  if (route === "/v1/admin/fraud" && (opts.method ?? "GET") === "GET") {
+    return fraudSignals.filter((s) => s.status === "open");
+  }
+
+  if (/^\/v1\/admin\/fraud\/[^/]+$/.test(route) && opts.method === "POST") {
+    const id = route.split("/")[4];
+    const { action } = opts.body as { action: string };
+    const statusMap: Record<string, MockFraudSignal["status"]> = {
+      clear: "cleared",
+      freeze: "frozen",
+      escalate: "escalated",
+    };
+    const next = statusMap[action] ?? "cleared";
+    const signal = fraudSignals.find((s) => s.id === id);
+    if (signal) signal.status = next; // resolved → drops out of the open list
+    return { id, status: next };
   }
 
   if (route === "/v1/dms" && (opts.method ?? "GET") === "GET") {

@@ -1066,6 +1066,61 @@ paths:
                 properties:
                   id: { type: string }
                   status: { type: string, enum: [approved, removed, banned, escalated] }
+  /v1/admin/ledger:
+    get:
+      summary: Platform money ledger — roll-up totals + recent entries (staff-only)
+      description: >
+        The financial-integrity console. All figures are server-truth in integer minor units; the
+        client only reads. Staff RBAC is enforced server-side.
+      responses:
+        "200":
+          description: Ledger totals and recent movements
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminLedger" }
+  /v1/admin/fraud:
+    get:
+      summary: Open fraud/risk signals awaiting a human decision (staff-only)
+      responses:
+        "200":
+          description: Open signals
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/FraudSignal" }
+  /v1/admin/fraud/{id}:
+    post:
+      summary: Resolve a fraud signal (clear / freeze funds / escalate)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [clear, freeze, escalate] }
+      responses:
+        "200":
+          description: Resolution
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, status]
+                properties:
+                  id: { type: string }
+                  status: { type: string, enum: [cleared, frozen, escalated] }
   /v1/dms:
     get:
       summary: Direct-message threads for the signed-in user (PRD §11)
@@ -1840,6 +1895,56 @@ components:
             text: { type: string, nullable: true }
         reportCount: { type: integer }
         createdAt: { type: string, format: date-time }
+    LedgerEntry:
+      type: object
+      required: [id, kind, description, amount, account, counterparty, createdAt, flagged]
+      properties:
+        id: { type: string }
+        kind:
+          type: string
+          enum: [topup, tip, battle, market, conversion, withdrawal, commission, refund]
+        description: { type: string }
+        amount: { $ref: "#/components/schemas/Money" }
+        account: { type: string, enum: [fan, creator, platform] }
+        counterparty: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        flagged: { type: boolean, description: A risk rule touched this entry }
+    LedgerTotals:
+      type: object
+      required: [grossVolume, creditsInCirculation, creatorPayable, platformRevenue, refunded]
+      properties:
+        grossVolume: { $ref: "#/components/schemas/Money" }
+        creditsInCirculation: { $ref: "#/components/schemas/Money" }
+        creatorPayable: { $ref: "#/components/schemas/Money" }
+        platformRevenue: { $ref: "#/components/schemas/Money" }
+        refunded: { $ref: "#/components/schemas/Money" }
+    AdminLedger:
+      type: object
+      required: [totals, entries]
+      properties:
+        totals: { $ref: "#/components/schemas/LedgerTotals" }
+        entries:
+          type: array
+          items: { $ref: "#/components/schemas/LedgerEntry" }
+    FraudSignal:
+      type: object
+      required: [id, type, severity, summary, subject, amount, detectedAt, status]
+      properties:
+        id: { type: string }
+        type:
+          type: string
+          enum: [velocity, chargeback, self_dealing, multi_account, payout_mismatch]
+        severity: { type: string, enum: [low, medium, high] }
+        summary: { type: string, description: Plain-language explanation of the rule that fired }
+        subject:
+          type: object
+          required: [handle, displayName]
+          properties:
+            handle: { type: string }
+            displayName: { type: string }
+        amount: { $ref: "#/components/schemas/Money", nullable: true }
+        detectedAt: { type: string, format: date-time }
+        status: { type: string, enum: [open, cleared, frozen, escalated] }
     ChartEntry:
       type: object
       required: [rank, delta, creator, score, risingPct]

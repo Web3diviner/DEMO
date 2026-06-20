@@ -40,6 +40,9 @@ import {
   notificationPrefsSchema,
   moderationItemSchema,
   moderationActionResultSchema,
+  adminLedgerSchema,
+  fraudSignalSchema,
+  fraudActionResultSchema,
   searchResultSchema,
   hashtagSchema,
   ambassadorSchema,
@@ -72,6 +75,10 @@ import {
   type ModerationItem,
   type ModerationAction,
   type ModerationActionResult,
+  type AdminLedger,
+  type FraudSignal,
+  type FraudAction,
+  type FraudActionResult,
   type SearchResult,
   type Hashtag,
   type Ambassador,
@@ -713,6 +720,24 @@ export const api = {
           idempotencyKey: `mod:${id}:${action}`,
         },
       );
+    },
+  },
+  admin: {
+    /** Platform money ledger — roll-up totals + recent entries (staff-only, read). */
+    ledger(signal?: AbortSignal): Promise<AdminLedger> {
+      return request(`/v1/admin/ledger`, adminLedgerSchema, { signal });
+    },
+    /** Open fraud/risk signals awaiting a human decision. */
+    fraud(signal?: AbortSignal): Promise<FraudSignal[]> {
+      return request(`/v1/admin/fraud`, z.array(fraudSignalSchema), { signal });
+    },
+    /** Resolve a fraud signal (clear / freeze funds / escalate). */
+    resolveFraud(id: string, action: FraudAction): Promise<FraudActionResult> {
+      return request(`/v1/admin/fraud/${encodeURIComponent(id)}`, fraudActionResultSchema, {
+        method: "POST",
+        body: { action },
+        idempotencyKey: `fraud:${id}:${action}`,
+      });
     },
   },
 };

@@ -760,6 +760,68 @@ export const moderationActionResultSchema = z.object({
   status: z.enum(["approved", "removed", "banned", "escalated"]),
 });
 
+/* ── Admin: Treasury & Risk (money-integrity dashboard, staff-only) ─────────────
+   The financial counterpart to the moderation queue. Every figure is server-truth in integer
+   minor units; the client only reads. Fraud signals carry an explainable summary so a human can
+   act with context, mirroring the scout's explainability ethos. */
+
+/** A single money movement in the platform ledger. */
+export const ledgerEntrySchema = z.object({
+  id: z.string(),
+  kind: z.enum([
+    "topup", // fan buys Credits (cash in)
+    "tip", // Credits → creator payable
+    "battle", // vote spend → escrow + rake
+    "market", // listing purchase → escrow + commission
+    "conversion", // earnings → Credits (internal)
+    "withdrawal", // creator payout (cash out)
+    "commission", // platform revenue line
+    "refund", // reversal
+  ]),
+  description: z.string(),
+  amount: moneySchema,
+  /** Which book the entry hits. */
+  account: z.enum(["fan", "creator", "platform"]),
+  /** The handle on the other side, when there is one. */
+  counterparty: z.string().nullable(),
+  createdAt: z.string(),
+  /** True when a risk rule touched this entry (surfaced for scrutiny). */
+  flagged: z.boolean(),
+});
+
+/** Roll-up totals across the platform books. */
+export const ledgerTotalsSchema = z.object({
+  grossVolume: moneySchema, // NGN cash in (top-ups)
+  creditsInCirculation: moneySchema, // CREDITS outstanding
+  creatorPayable: moneySchema, // NGN owed to creators
+  platformRevenue: moneySchema, // NGN commission + rake
+  refunded: moneySchema, // NGN reversed
+});
+
+export const adminLedgerSchema = z.object({
+  totals: ledgerTotalsSchema,
+  entries: z.array(ledgerEntrySchema),
+});
+
+/** A flagged risk signal awaiting a human decision. */
+export const fraudSignalSchema = z.object({
+  id: z.string(),
+  type: z.enum(["velocity", "chargeback", "self_dealing", "multi_account", "payout_mismatch"]),
+  severity: z.enum(["low", "medium", "high"]),
+  /** Plain-language explanation of why the rule fired. */
+  summary: z.string(),
+  subject: z.object({ handle: z.string(), displayName: z.string() }),
+  /** Money at risk, when quantifiable. */
+  amount: moneySchema.nullable(),
+  detectedAt: z.string(),
+  status: z.enum(["open", "cleared", "frozen", "escalated"]),
+});
+
+export const fraudActionResultSchema = z.object({
+  id: z.string(),
+  status: z.enum(["cleared", "frozen", "escalated"]),
+});
+
 /* ── Battles (PRD §6.5) ───────────────────────────────────────────────────
    Time-boxed contests; fans vote with Credits (vote cost → escrow + platform
    fee). State machine Draft→Open→Voting→Settled→Archived. Verified users carry
@@ -915,6 +977,12 @@ export type BlockedUser = z.infer<typeof blockedUserSchema>;
 export type ModerationItem = z.infer<typeof moderationItemSchema>;
 export type ModerationAction = "approve" | "remove" | "ban" | "escalate";
 export type ModerationActionResult = z.infer<typeof moderationActionResultSchema>;
+export type LedgerEntry = z.infer<typeof ledgerEntrySchema>;
+export type LedgerTotals = z.infer<typeof ledgerTotalsSchema>;
+export type AdminLedger = z.infer<typeof adminLedgerSchema>;
+export type FraudSignal = z.infer<typeof fraudSignalSchema>;
+export type FraudAction = "clear" | "freeze" | "escalate";
+export type FraudActionResult = z.infer<typeof fraudActionResultSchema>;
 
 /** Engagement actions that flow through the optimistic queue. */
 export type EngagementAction =
