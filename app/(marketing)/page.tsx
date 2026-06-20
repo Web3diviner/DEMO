@@ -32,13 +32,13 @@ export default function Landing() {
       </p>
       <div className="mt-8 flex w-full max-w-xs flex-col gap-3">
         <Link
-          href="/feed"
+          href="/auth"
           className="rounded-pill bg-brand text-brand-fg shadow-1 flex h-13 w-full items-center justify-center px-7 text-lg font-medium transition-transform duration-[var(--dur-1)] ease-[var(--ease-out)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)] active:scale-[0.97]"
         >
-          Enter the feed
+          Get started
         </Link>
-        <Link href="/creator/register" className="text-muted hover:text-fg text-sm font-medium">
-          Are you a creator? Get verified →
+        <Link href="/feed" className="text-muted hover:text-fg text-sm font-medium">
+          Enter the feed →
         </Link>
       </div>
     </main>

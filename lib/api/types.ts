@@ -89,6 +89,23 @@ export const publishResultSchema = z.object({
   status: z.enum(["processing", "published"]),
 });
 
+/* ── Auth, onboarding & KYC (PRD §9.3, §11) ───────────────────────────────────
+   Tier 0 browse · Tier 1 phone-verified (buy Credits, tip, vote) · Tier 2 ID/BVN
+   (creator payouts) · Tier 3 full KYC (large/enterprise payouts). The session is
+   the off-chain source of truth for access; never gate on an on-chain read. */
+export const sessionUserSchema = z.object({
+  handle: z.string(),
+  displayName: z.string(),
+  campus: z.string().nullable(),
+  /** KYC tier 0..3. */
+  kycTier: z.number().int(),
+  verifiedCreator: z.boolean(),
+});
+
+export const otpChallengeSchema = z.object({ challengeId: z.string() });
+export const authResultSchema = z.object({ user: sessionUserSchema, isNew: z.boolean() });
+export const kycResultSchema = z.object({ kycTier: z.number().int() });
+
 /** Creator profile / Talent Hub. */
 export const profileSchema = z.object({
   creator: creatorSchema,
@@ -751,6 +768,10 @@ export type VoteResult = z.infer<typeof voteResultSchema>;
 export type ChartBoard = z.infer<typeof chartBoardSchema>;
 export type ChartEntry = z.infer<typeof chartEntrySchema>;
 export type Chart = z.infer<typeof chartSchema>;
+export type SessionUser = z.infer<typeof sessionUserSchema>;
+export type OtpChallenge = z.infer<typeof otpChallengeSchema>;
+export type AuthResult = z.infer<typeof authResultSchema>;
+export type KycResult = z.infer<typeof kycResultSchema>;
 export type Profile = z.infer<typeof profileSchema>;
 export type FollowResult = z.infer<typeof followResultSchema>;
 export type Me = z.infer<typeof meSchema>;

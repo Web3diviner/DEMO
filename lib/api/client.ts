@@ -1,5 +1,9 @@
 import { z } from "zod";
 import {
+  sessionUserSchema,
+  otpChallengeSchema,
+  authResultSchema,
+  kycResultSchema,
   feedPageSchema,
   engagementResultSchema,
   uploadTicketSchema,
@@ -48,6 +52,10 @@ import {
   eventDetailSchema,
   ticketSchema,
   ticketResultSchema,
+  type SessionUser,
+  type OtpChallenge,
+  type AuthResult,
+  type KycResult,
   type EngagementAction,
   type FeedKind,
   type TipResult,
@@ -182,6 +190,34 @@ async function request<T>(
 }
 
 export const api = {
+  auth: {
+    /** Start phone sign-in: sends a one-time code. */
+    otp(phone: string): Promise<OtpChallenge> {
+      return request(`/v1/auth/otp`, otpChallengeSchema, { method: "POST", body: { phone } });
+    },
+    /** Verify the code; returns the user and whether they're new (need a profile). */
+    verify(challengeId: string, code: string): Promise<AuthResult> {
+      return request(`/v1/auth/verify`, authResultSchema, {
+        method: "POST",
+        body: { challengeId, code },
+      });
+    },
+    /** Complete a new user's profile (handle + campus). */
+    completeProfile(input: {
+      handle: string;
+      displayName: string;
+      campus: string | null;
+    }): Promise<{ user: SessionUser }> {
+      return request(`/v1/auth/profile`, z.object({ user: sessionUserSchema }), {
+        method: "POST",
+        body: input,
+      });
+    },
+    /** Submit ID/BVN to lift the KYC tier (e.g. Tier 1 → Tier 2 for payouts). */
+    verifyIdentity(bvn: string): Promise<KycResult> {
+      return request(`/v1/auth/kyc`, kycResultSchema, { method: "POST", body: { bvn } });
+    },
+  },
   feed: {
     page(cursor: string | null, kind: FeedKind = "fyp", signal?: AbortSignal): Promise<FeedPage> {
       const params = new URLSearchParams({ feed: kind });

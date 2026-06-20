@@ -1023,6 +1023,42 @@ export async function handleMock(
 
   const [route, query] = path.split("?");
 
+  if (route === "/v1/auth/otp" && opts.method === "POST") {
+    const { phone } = opts.body as { phone: string };
+    if (!/^\+?\d[\d\s-]{8,}$/.test(phone)) throw new Error("Enter a valid phone number");
+    return { challengeId: `ch_${Date.now().toString(36)}` };
+  }
+
+  if (route === "/v1/auth/verify" && opts.method === "POST") {
+    const { code } = opts.body as { challengeId: string; code: string };
+    // Demo code is 123456. The real backend checks the SMS OTP.
+    if (code !== "123456") throw new Error("That code isn't right. Try 123456.");
+    return {
+      // New users land on the profile step; phone verification lifts them to Tier 1.
+      user: { handle: "", displayName: "", campus: null, kycTier: 1, verifiedCreator: false },
+      isNew: true,
+    };
+  }
+
+  if (route === "/v1/auth/profile" && opts.method === "POST") {
+    const { handle, displayName, campus } = opts.body as {
+      handle: string;
+      displayName: string;
+      campus: string | null;
+    };
+    if (!/^[a-z0-9._]{3,20}$/.test(handle)) throw new Error("Pick a handle (3–20 letters/numbers)");
+    if (!displayName.trim()) throw new Error("Add a display name");
+    return {
+      user: { handle, displayName: displayName.trim(), campus, kycTier: 1, verifiedCreator: false },
+    };
+  }
+
+  if (route === "/v1/auth/kyc" && opts.method === "POST") {
+    const { bvn } = opts.body as { bvn: string };
+    if (!/^\d{11}$/.test(bvn)) throw new Error("Enter your 11-digit BVN");
+    return { kycTier: 2 };
+  }
+
   if (route === "/v1/trends" && (opts.method ?? "GET") === "GET") {
     return TRENDS;
   }

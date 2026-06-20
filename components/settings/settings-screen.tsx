@@ -2,8 +2,10 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  BadgeCheck,
   Bell,
   ChevronRight,
   Coins,
@@ -19,8 +21,10 @@ import {
 import { useDataPolicy } from "@/lib/hooks/use-data-policy";
 import { getPushState, enablePush, disablePush, type PushState } from "@/lib/push/web-push";
 import { api } from "@/lib/api/client";
+import { useSession, signOut, KYC_LABEL } from "@/lib/auth/session";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils/cn";
+import { VerifyIdentitySheet } from "./verify-identity-sheet";
 import type { NotificationPrefKey, NotificationPrefs } from "@/lib/api/types";
 
 const NOTIF_CATEGORIES: {
@@ -112,6 +116,9 @@ function Row({
 
 export function SettingsScreen() {
   const qc = useQueryClient();
+  const router = useRouter();
+  const session = useSession();
+  const [verifyOpen, setVerifyOpen] = React.useState(false);
   const { policy, manualDataSaver, setManualDataSaver } = useDataPolicy();
   const [push, setPush] = React.useState<PushState>("unsupported");
   const [busy, setBusy] = React.useState(false);
@@ -224,6 +231,27 @@ export function SettingsScreen() {
       <section className="mt-6">
         <h2 className="text-subtle mb-1 text-xs font-medium uppercase">Account</h2>
         <div className="divide-line divide-y">
+          <div className="flex items-center gap-3 py-4">
+            <span className="bg-elevated text-muted grid h-9 w-9 shrink-0 place-items-center rounded-full">
+              <BadgeCheck className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-medium">Verification</p>
+              <p className="text-subtle text-xs">
+                {session.user ? KYC_LABEL[session.user.kycTier] : "Not signed in"}
+                {session.user?.verifiedCreator ? " · Creator" : ""}
+              </p>
+            </div>
+            {session.user && session.user.kycTier < 2 && (
+              <button
+                type="button"
+                onClick={() => setVerifyOpen(true)}
+                className="text-brand text-sm font-medium"
+              >
+                Verify identity
+              </button>
+            )}
+          </div>
           <Link href="/memberships" className="flex items-center gap-3 py-4">
             <span className="bg-elevated text-muted grid h-9 w-9 shrink-0 place-items-center rounded-full">
               <Crown className="h-4 w-4" />
@@ -246,6 +274,10 @@ export function SettingsScreen() {
           </Link>
           <button
             type="button"
+            onClick={() => {
+              signOut();
+              router.push("/");
+            }}
             className="text-danger flex w-full items-center gap-3 py-4 text-left"
           >
             <span className="bg-danger/10 text-danger grid h-9 w-9 shrink-0 place-items-center rounded-full">
@@ -257,6 +289,8 @@ export function SettingsScreen() {
       </section>
 
       <p className="text-subtle mt-8 text-center text-xs">Skylora · mobile-web (PWA)</p>
+
+      <VerifyIdentitySheet open={verifyOpen} onClose={() => setVerifyOpen(false)} />
     </main>
   );
 }

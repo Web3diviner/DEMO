@@ -10,6 +10,85 @@ info:
 servers:
   - url: https://api.demo.example
 paths:
+  /v1/auth/otp:
+    post:
+      summary: Start phone sign-in — send a one-time code (PRD §9.3)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties: { phone: { type: string } }
+      responses:
+        "200":
+          description: OTP challenge issued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OtpChallenge" }
+  /v1/auth/verify:
+    post:
+      summary: Verify the one-time code; returns the user (Tier 1) and whether they're new
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [challengeId, code]
+              properties:
+                challengeId: { type: string }
+                code: { type: string }
+      responses:
+        "200":
+          description: Verified
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResult" }
+  /v1/auth/profile:
+    post:
+      summary: Complete a new user's profile (handle, display name, campus)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [handle, displayName, campus]
+              properties:
+                handle: { type: string }
+                displayName: { type: string }
+                campus: { type: string, nullable: true }
+      responses:
+        "200":
+          description: The signed-in user
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user]
+                properties: { user: { $ref: "#/components/schemas/SessionUser" } }
+  /v1/auth/kyc:
+    post:
+      summary: Submit ID/BVN to lift the KYC tier (Tier 1 → Tier 2 for payouts)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bvn]
+              properties: { bvn: { type: string } }
+      responses:
+        "200":
+          description: New KYC tier
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [kycTier]
+                properties: { kycTier: { type: integer } }
   /v1/feed:
     get:
       summary: Personalized talent feed (cursor-paginated). For You vs Following (PRD §6.1)
@@ -1034,6 +1113,26 @@ paths:
               schema: { $ref: "#/components/schemas/ClipAnalytics" }
 components:
   schemas:
+    SessionUser:
+      type: object
+      required: [handle, displayName, campus, kycTier, verifiedCreator]
+      properties:
+        handle: { type: string }
+        displayName: { type: string }
+        campus: { type: string, nullable: true }
+        kycTier: { type: integer, description: "0 browse · 1 phone · 2 ID/BVN · 3 full" }
+        verifiedCreator: { type: boolean }
+    OtpChallenge:
+      type: object
+      required: [challengeId]
+      properties:
+        challengeId: { type: string }
+    AuthResult:
+      type: object
+      required: [user, isNew]
+      properties:
+        user: { $ref: "#/components/schemas/SessionUser" }
+        isNew: { type: boolean }
     Money:
       type: object
       required: [currency, minor]
