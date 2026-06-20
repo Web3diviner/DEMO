@@ -228,6 +228,59 @@ function buildAnalytics(range: "7d" | "28d" | "90d") {
   };
 }
 
+// Creator content library (the "Your content" surface). Mutable so edit/delete persist within a
+// session. Ids align with the analytics top-clips so "View insights" resolves.
+type MockMyClip = {
+  id: string;
+  caption: string;
+  status: "published" | "processing";
+  views: number;
+  likes: number;
+  createdAt: string;
+};
+const myClips: MockMyClip[] = [
+  {
+    id: "up_new",
+    caption: "New drop — processing…",
+    status: "processing",
+    views: 0,
+    likes: 0,
+    createdAt: iso(-60 * 12),
+  },
+  {
+    id: "c1",
+    caption: "Freestyle Friday 🎤",
+    status: "published",
+    views: 48_200,
+    likes: 6_100,
+    createdAt: iso(-3600 * 30),
+  },
+  {
+    id: "c4",
+    caption: "Lagos Nights (snippet)",
+    status: "published",
+    views: 31_400,
+    likes: 4_200,
+    createdAt: iso(-3600 * 76),
+  },
+  {
+    id: "c7",
+    caption: "Battle vs @tunde.flow",
+    status: "published",
+    views: 27_800,
+    likes: 5_300,
+    createdAt: iso(-3600 * 120),
+  },
+  {
+    id: "c2",
+    caption: "Dorm session 🎹",
+    status: "published",
+    views: 19_600,
+    likes: 2_100,
+    createdAt: iso(-3600 * 200),
+  },
+];
+
 function buildClipAnalytics(clipId: string) {
   const top = ANALYTICS_TOP_CLIPS.find((c) => c.id === clipId);
   const caption = top?.caption ?? "Your clip";
@@ -1012,6 +1065,28 @@ export async function handleMock(
   if (route === "/v1/clips" && opts.method === "POST") {
     const body = opts.body as { assetId: string };
     return { clipId: `clip_pub_${body.assetId}`, status: "processing" };
+  }
+
+  if (route === "/v1/clips/mine" && (opts.method ?? "GET") === "GET") {
+    return myClips;
+  }
+
+  if (/^\/v1\/clips\/[^/]+$/.test(route) && opts.method === "PATCH") {
+    const id = route.split("/")[3];
+    const clip = myClips.find((c) => c.id === id);
+    if (!clip) throw new Error("Clip not found");
+    const { caption } = opts.body as { caption: string };
+    const trimmed = caption.trim();
+    if (!trimmed) throw new Error("Caption can't be empty");
+    clip.caption = trimmed;
+    return clip;
+  }
+
+  if (/^\/v1\/clips\/[^/]+$/.test(route) && opts.method === "DELETE") {
+    const id = route.split("/")[3];
+    const idx = myClips.findIndex((c) => c.id === id);
+    if (idx !== -1) myClips.splice(idx, 1);
+    return { ok: true };
   }
 
   if (route.startsWith("/v1/profiles/") && (opts.method ?? "GET") === "GET") {

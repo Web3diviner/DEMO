@@ -96,6 +96,54 @@ paths:
                 properties:
                   clipId: { type: string }
                   status: { type: string, enum: [processing, published] }
+  /v1/clips/mine:
+    get:
+      summary: The signed-in creator's own clips (content management)
+      responses:
+        "200":
+          description: The creator's clips
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/MyClip" }
+  /v1/clips/{id}:
+    patch:
+      summary: Edit a clip's caption
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [caption]
+              properties:
+                caption: { type: string }
+      responses:
+        "200":
+          description: The updated clip
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MyClip" }
+    delete:
+      summary: Delete a clip (idempotent)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties: { ok: { type: boolean } }
   /v1/profiles/{handle}:
     get:
       summary: Creator profile / Talent Hub
@@ -1464,6 +1512,16 @@ components:
         sources:
           type: array
           items: { $ref: "#/components/schemas/ClipTraffic" }
+    MyClip:
+      type: object
+      required: [id, caption, status, views, likes, createdAt]
+      properties:
+        id: { type: string }
+        caption: { type: string }
+        status: { type: string, enum: [published, processing] }
+        views: { type: integer }
+        likes: { type: integer }
+        createdAt: { type: string, format: date-time }
     CreditPack:
       type: object
       required: [id, credits, price, badge]

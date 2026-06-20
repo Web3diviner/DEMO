@@ -4,6 +4,7 @@ import {
   engagementResultSchema,
   uploadTicketSchema,
   publishResultSchema,
+  myClipSchema,
   profileSchema,
   walletSchema,
   earningsSummarySchema,
@@ -74,6 +75,7 @@ import {
   type EngagementResult,
   type UploadTicket,
   type PublishResult,
+  type MyClip,
   type Profile,
   type Wallet,
   type EarningsSummary,
@@ -210,6 +212,26 @@ export const api = {
         method: "POST",
         body: input,
         idempotencyKey: `publish:${input.assetId}`,
+      });
+    },
+  },
+  content: {
+    /** The signed-in creator's own clips, for management. */
+    mine(signal?: AbortSignal): Promise<MyClip[]> {
+      return request(`/v1/clips/mine`, z.array(myClipSchema), { signal });
+    },
+    /** Edit a clip's caption. Returns the updated clip. */
+    updateCaption(id: string, caption: string): Promise<MyClip> {
+      return request(`/v1/clips/${encodeURIComponent(id)}`, myClipSchema, {
+        method: "PATCH",
+        body: { caption },
+      });
+    },
+    /** Delete a clip. Idempotent. */
+    remove(id: string): Promise<{ ok: boolean }> {
+      return request(`/v1/clips/${encodeURIComponent(id)}`, z.object({ ok: z.boolean() }), {
+        method: "DELETE",
+        idempotencyKey: `delete-clip:${id}`,
       });
     },
   },

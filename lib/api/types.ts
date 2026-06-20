@@ -229,6 +229,18 @@ export const clipAnalyticsSchema = z.object({
   sources: z.array(clipTrafficSchema),
 });
 
+/* ── Creator content management (the creator's own uploads) ────────────────────
+   The list backing "Your content": edit the caption, delete, or jump to a clip's
+   insights. `status` is "processing" until the asset finishes transcoding. */
+export const myClipSchema = z.object({
+  id: z.string(),
+  caption: z.string(),
+  status: z.enum(["published", "processing"]),
+  views: z.number().int(),
+  likes: z.number().int(),
+  createdAt: z.string(),
+});
+
 export const withdrawalResultSchema = z.object({
   reference: z.string(),
   status: z.enum(["processing", "failed"]),
@@ -706,6 +718,7 @@ export type TrafficSource = z.infer<typeof trafficSourceSchema>;
 export type ClipTraffic = z.infer<typeof clipTrafficSchema>;
 export type RetentionPoint = z.infer<typeof retentionPointSchema>;
 export type ClipAnalytics = z.infer<typeof clipAnalyticsSchema>;
+export type MyClip = z.infer<typeof myClipSchema>;
 export type CreditPack = z.infer<typeof creditPackSchema>;
 export type TopUpIntent = z.infer<typeof topUpIntentSchema>;
 export type TopUpStatus = z.infer<typeof topUpStatusSchema>;
