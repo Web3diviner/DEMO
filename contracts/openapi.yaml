@@ -158,6 +158,34 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Profile" }
+  /v1/me:
+    get:
+      summary: The signed-in user's own editable profile
+      responses:
+        "200":
+          description: Me
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+    patch:
+      summary: Update editable profile fields
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [displayName, bio, campus]
+              properties:
+                displayName: { type: string }
+                bio: { type: string }
+                campus: { type: string, nullable: true }
+      responses:
+        "200":
+          description: The saved profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
   /v1/wallet:
     get:
       summary: Fan Credits + creator earnings (server-truth balances)
@@ -1571,6 +1599,16 @@ components:
           items: { $ref: "#/components/schemas/Comment" }
         nextCursor: { type: string, nullable: true }
         total: { type: integer }
+    Me:
+      type: object
+      required: [handle, displayName, bio, campus, avatarUrl, verified]
+      properties:
+        handle: { type: string }
+        displayName: { type: string }
+        bio: { type: string }
+        campus: { type: string, nullable: true }
+        avatarUrl: { type: string, format: uri, nullable: true }
+        verified: { type: boolean }
     Profile:
       type: object
       required: [creator, bio, followerCount, followingCount, totalLikes, clips]

@@ -31,7 +31,7 @@ function Stat({ label, value }: { label: string; value: number }) {
   );
 }
 
-export function TalentHub({ handle }: { handle: string }) {
+export function TalentHub({ handle, editable = false }: { handle: string; editable?: boolean }) {
   const marketplaceOn = useFlag("marketplace");
   const premiumOn = useFlag("premium");
   const { data, status } = useQuery({
@@ -71,13 +71,15 @@ export function TalentHub({ handle }: { handle: string }) {
             {creator.campus && <p className="text-subtle text-xs">{creator.campus}</p>}
           </div>
         </div>
-        <Link
-          href="/settings"
-          aria-label="Settings"
-          className="text-muted hover:text-fg grid h-11 w-11 place-items-center rounded-full"
-        >
-          <Settings className="h-5 w-5" />
-        </Link>
+        {editable && (
+          <Link
+            href="/settings"
+            aria-label="Settings"
+            className="text-muted hover:text-fg grid h-11 w-11 place-items-center rounded-full"
+          >
+            <Settings className="h-5 w-5" />
+          </Link>
+        )}
       </header>
 
       <div className="border-line mt-5 flex items-center justify-around rounded-lg border py-3">
@@ -89,59 +91,76 @@ export function TalentHub({ handle }: { handle: string }) {
       <p className="mt-4 text-sm leading-relaxed">{bio}</p>
 
       <div className="mt-4 flex gap-2">
-        <Button block>Follow</Button>
-        <Link
-          href="/dms"
-          className="border-line text-fg rounded-pill flex h-11 flex-1 items-center justify-center border font-medium active:scale-[0.98]"
-        >
-          Message
-        </Link>
+        {editable ? (
+          <Link
+            href="/profile/edit"
+            className="border-line text-fg rounded-pill flex h-11 flex-1 items-center justify-center border font-medium active:scale-[0.98]"
+          >
+            Edit profile
+          </Link>
+        ) : (
+          <>
+            <Button block>Follow</Button>
+            <Link
+              href="/dms"
+              className="border-line text-fg rounded-pill flex h-11 flex-1 items-center justify-center border font-medium active:scale-[0.98]"
+            >
+              Message
+            </Link>
+          </>
+        )}
       </div>
 
-      {/* Your content entry */}
-      <Link
-        href="/content"
-        className="border-line bg-surface mt-4 flex items-center gap-3 rounded-lg border p-3 active:scale-[0.99]"
-      >
-        <span className="bg-brand/15 text-brand grid h-9 w-9 shrink-0 place-items-center rounded-full">
-          <Film className="h-4 w-4" aria-hidden />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold">Your content</span>
-          <span className="text-subtle block text-xs">Manage clips, captions &amp; insights.</span>
-        </span>
-        <ChevronRight className="text-subtle h-4 w-4 shrink-0" aria-hidden />
-      </Link>
+      {/* Own-only creator tools — hidden on public profile views. */}
+      {editable && (
+        <>
+          <Link
+            href="/content"
+            className="border-line bg-surface mt-4 flex items-center gap-3 rounded-lg border p-3 active:scale-[0.99]"
+          >
+            <span className="bg-brand/15 text-brand grid h-9 w-9 shrink-0 place-items-center rounded-full">
+              <Film className="h-4 w-4" aria-hidden />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold">Your content</span>
+              <span className="text-subtle block text-xs">
+                Manage clips, captions &amp; insights.
+              </span>
+            </span>
+            <ChevronRight className="text-subtle h-4 w-4 shrink-0" aria-hidden />
+          </Link>
 
-      {/* Creator studio (analytics) entry */}
-      <Link
-        href="/analytics"
-        className="border-line bg-surface mt-4 flex items-center gap-3 rounded-lg border p-3 active:scale-[0.99]"
-      >
-        <span className="bg-brand/15 text-brand grid h-9 w-9 shrink-0 place-items-center rounded-full">
-          <BarChart3 className="h-4 w-4" aria-hidden />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold">Studio</span>
-          <span className="text-subtle block text-xs">Views, watch time &amp; audience.</span>
-        </span>
-        <ChevronRight className="text-subtle h-4 w-4 shrink-0" aria-hidden />
-      </Link>
+          <Link
+            href="/analytics"
+            className="border-line bg-surface mt-4 flex items-center gap-3 rounded-lg border p-3 active:scale-[0.99]"
+          >
+            <span className="bg-brand/15 text-brand grid h-9 w-9 shrink-0 place-items-center rounded-full">
+              <BarChart3 className="h-4 w-4" aria-hidden />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold">Studio</span>
+              <span className="text-subtle block text-xs">Views, watch time &amp; audience.</span>
+            </span>
+            <ChevronRight className="text-subtle h-4 w-4 shrink-0" aria-hidden />
+          </Link>
 
-      {/* Activity / notifications entry */}
-      <Link
-        href="/notifications"
-        className="border-line bg-surface mt-4 flex items-center gap-3 rounded-lg border p-3 active:scale-[0.99]"
-      >
-        <span className="bg-live/15 text-live grid h-9 w-9 shrink-0 place-items-center rounded-full">
-          <Bell className="h-4 w-4" aria-hidden />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold">Activity</span>
-          <span className="text-subtle block text-xs">Follows, tips, comments &amp; results.</span>
-        </span>
-        <ChevronRight className="text-subtle h-4 w-4 shrink-0" aria-hidden />
-      </Link>
+          <Link
+            href="/notifications"
+            className="border-line bg-surface mt-4 flex items-center gap-3 rounded-lg border p-3 active:scale-[0.99]"
+          >
+            <span className="bg-live/15 text-live grid h-9 w-9 shrink-0 place-items-center rounded-full">
+              <Bell className="h-4 w-4" aria-hidden />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold">Activity</span>
+              <span className="text-subtle block text-xs">
+                Follows, tips, comments &amp; results.
+              </span>
+            </span>
+            <ChevronRight className="text-subtle h-4 w-4 shrink-0" aria-hidden />
+          </Link>
+        </>
+      )}
 
       {/* Marketplace entry (feature-flagged) */}
       {marketplaceOn && (

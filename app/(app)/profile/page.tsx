@@ -7,5 +7,5 @@ import { TalentHub } from "@/components/profile/talent-hub";
 export const metadata = { title: "Talent Hub" };
 
 export default function ProfilePage() {
-  return <TalentHub handle="ada.beats" />;
+  return <TalentHub handle="ada.beats" editable />;
 }

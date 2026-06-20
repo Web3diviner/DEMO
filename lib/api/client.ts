@@ -6,6 +6,7 @@ import {
   publishResultSchema,
   myClipSchema,
   profileSchema,
+  meSchema,
   walletSchema,
   earningsSummarySchema,
   withdrawalResultSchema,
@@ -77,6 +78,7 @@ import {
   type PublishResult,
   type MyClip,
   type Profile,
+  type Me,
   type Wallet,
   type EarningsSummary,
   type WithdrawalResult,
@@ -238,6 +240,16 @@ export const api = {
   profiles: {
     get(handle: string, signal?: AbortSignal): Promise<Profile> {
       return request(`/v1/profiles/${encodeURIComponent(handle)}`, profileSchema, { signal });
+    },
+  },
+  me: {
+    /** The signed-in user's own editable profile. */
+    get(signal?: AbortSignal): Promise<Me> {
+      return request(`/v1/me`, meSchema, { signal });
+    },
+    /** Update editable profile fields. Returns the saved profile. */
+    update(input: { displayName: string; bio: string; campus: string | null }): Promise<Me> {
+      return request(`/v1/me`, meSchema, { method: "PATCH", body: input });
     },
   },
   wallet: {

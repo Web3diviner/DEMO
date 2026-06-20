@@ -106,6 +106,16 @@ export const profileSchema = z.object({
   ),
 });
 
+/** The signed-in user's own editable profile (the subset they can change). */
+export const meSchema = z.object({
+  handle: z.string(),
+  displayName: z.string(),
+  bio: z.string(),
+  campus: z.string().nullable(),
+  avatarUrl: z.string().url().nullable(),
+  verified: z.boolean(),
+});
+
 /** Wallet — fan Credits (spendable, non-cashable) kept DISTINCT from creator earnings. */
 export const walletSchema = z.object({
   credits: moneySchema, // CREDITS
@@ -701,6 +711,7 @@ export type ChartBoard = z.infer<typeof chartBoardSchema>;
 export type ChartEntry = z.infer<typeof chartEntrySchema>;
 export type Chart = z.infer<typeof chartSchema>;
 export type Profile = z.infer<typeof profileSchema>;
+export type Me = z.infer<typeof meSchema>;
 export type Wallet = z.infer<typeof walletSchema>;
 export type EarningSource = z.infer<typeof earningSourceSchema>;
 export type EarningEntry = z.infer<typeof earningEntrySchema>;

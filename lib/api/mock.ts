@@ -39,6 +39,17 @@ const CREATORS = [
   { id: "c3", handle: "zainab.moves", displayName: "Zainab", campus: "ABU Zaria", verified: true },
 ];
 
+// The signed-in user's own editable profile (mutable so edits persist within a session).
+// Overrides are merged into the public profile for the same handle.
+const me = {
+  handle: "ada.beats",
+  displayName: "Ada",
+  bio: "Campus performer. Booking via DMs. 🎤",
+  campus: "UNILAG" as string | null,
+  avatarUrl: null as string | null,
+  verified: true,
+};
+
 const CAPTIONS = [
   "Freestyle in the hostel common room 🔥",
   "Choreo I've been working on all week",
@@ -1101,14 +1112,39 @@ export async function handleMock(
         battleId: idx % 5 === 0 ? `battle_${idx}` : null,
       };
     });
+    // Merge the signed-in user's edits into their own public profile.
+    const mine = handle === me.handle;
     return {
-      creator: { ...creator, avatarUrl: null },
-      bio: "Campus performer. Booking via DMs. 🎤",
+      creator: {
+        ...creator,
+        displayName: mine ? me.displayName : creator.displayName,
+        campus: mine ? me.campus : creator.campus,
+        avatarUrl: null,
+      },
+      bio: mine ? me.bio : "Campus performer. Booking via DMs. 🎤",
       followerCount: 12_400,
       followingCount: 312,
       totalLikes: 248_900,
       clips,
     };
+  }
+
+  if (route === "/v1/me" && (opts.method ?? "GET") === "GET") {
+    return me;
+  }
+
+  if (route === "/v1/me" && opts.method === "PATCH") {
+    const { displayName, bio, campus } = opts.body as {
+      displayName: string;
+      bio: string;
+      campus: string | null;
+    };
+    if (!displayName.trim()) throw new Error("Display name can't be empty");
+    if (bio.length > 160) throw new Error("Bio is too long");
+    me.displayName = displayName.trim();
+    me.bio = bio.trim();
+    me.campus = campus;
+    return me;
   }
 
   if (route === "/v1/wallet" && (opts.method ?? "GET") === "GET") {
