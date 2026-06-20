@@ -18,6 +18,8 @@ test("a creator can edit a caption and delete a clip", async ({ page }) => {
   await expect(editSheet).toBeVisible();
   await editSheet.getByRole("textbox").fill("Freestyle Friday — encore 🎤");
   await editSheet.getByRole("button", { name: /save caption/i }).click();
+  // Wait for the sheet to close so the textarea (same text) no longer matches, then assert the row.
+  await expect(editSheet).toBeHidden();
   await expect(page.getByText(/freestyle friday — encore/i)).toBeVisible();
 
   // Delete a clip with confirmation.

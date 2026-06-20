@@ -43,6 +43,15 @@ const CREATORS = [
 const FOLLOWER_BASE = 12_400;
 const followedHandles = new Set<string>();
 
+// Account privacy controls (mutable per session).
+const privacy = {
+  privateAccount: false,
+  messagesFrom: "everyone" as "everyone" | "following",
+  commentsFrom: "everyone" as "everyone" | "following" | "off",
+  activityStatus: true,
+  allowDownloads: true,
+};
+
 // The signed-in user's own editable profile (mutable so edits persist within a session).
 // Overrides are merged into the public profile for the same handle.
 const me = {
@@ -1169,6 +1178,15 @@ export async function handleMock(
     me.bio = bio.trim();
     me.campus = campus;
     return me;
+  }
+
+  if (route === "/v1/privacy" && (opts.method ?? "GET") === "GET") {
+    return privacy;
+  }
+
+  if (route === "/v1/privacy" && opts.method === "PATCH") {
+    Object.assign(privacy, opts.body as Partial<typeof privacy>);
+    return privacy;
   }
 
   if (route === "/v1/wallet" && (opts.method ?? "GET") === "GET") {

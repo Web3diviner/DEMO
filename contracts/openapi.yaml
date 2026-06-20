@@ -210,6 +210,28 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Me" }
+  /v1/privacy:
+    get:
+      summary: Account privacy controls
+      responses:
+        "200":
+          description: Privacy settings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PrivacySettings" }
+    patch:
+      summary: Update privacy settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PrivacySettings" }
+      responses:
+        "200":
+          description: The saved settings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PrivacySettings" }
   /v1/wallet:
     get:
       summary: Fan Credits + creator earnings (server-truth balances)
@@ -1213,6 +1235,15 @@ components:
         follows: { type: boolean }
         comments: { type: boolean }
         messages: { type: boolean }
+    PrivacySettings:
+      type: object
+      required: [privateAccount, messagesFrom, commentsFrom, activityStatus, allowDownloads]
+      properties:
+        privateAccount: { type: boolean }
+        messagesFrom: { type: string, enum: [everyone, following] }
+        commentsFrom: { type: string, enum: [everyone, following, off] }
+        activityStatus: { type: boolean }
+        allowDownloads: { type: boolean }
     Hashtag:
       type: object
       required: [tag, posts]

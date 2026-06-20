@@ -455,6 +455,15 @@ export const notificationPrefsSchema = z.object({
   messages: z.boolean(),
 });
 
+/** Account privacy controls. Audience enums gate who can reach the user. */
+export const privacySettingsSchema = z.object({
+  privateAccount: z.boolean(),
+  messagesFrom: z.enum(["everyone", "following"]),
+  commentsFrom: z.enum(["everyone", "following", "off"]),
+  activityStatus: z.boolean(),
+  allowDownloads: z.boolean(),
+});
+
 /* ── Events (PRD §6.8 — real-world ↔ platform bridge) ──────────────────────────
    Campus shows, concerts, competitions, awards, festivals. Ticketing now;
    NFT tickets (provenance / anti-fraud / resale-royalty) are a later phase. */
@@ -793,6 +802,7 @@ export type Notification = z.infer<typeof notificationSchema>;
 export type NotificationsPage = z.infer<typeof notificationsPageSchema>;
 export type NotificationPrefKey = z.infer<typeof notificationPrefKeySchema>;
 export type NotificationPrefs = z.infer<typeof notificationPrefsSchema>;
+export type PrivacySettings = z.infer<typeof privacySettingsSchema>;
 export type ModerationItem = z.infer<typeof moderationItemSchema>;
 export type ModerationAction = "approve" | "remove" | "ban" | "escalate";
 export type ModerationActionResult = z.infer<typeof moderationActionResultSchema>;

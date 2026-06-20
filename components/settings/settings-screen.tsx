@@ -234,7 +234,16 @@ export function SettingsScreen() {
             </div>
             <ChevronRight className="text-subtle h-4 w-4" aria-hidden />
           </Link>
-          <Row icon={Shield} title="Privacy" desc="Manage your data and consent" />
+          <Link href="/settings/privacy" className="flex items-center gap-3 py-4">
+            <span className="bg-elevated text-muted grid h-9 w-9 shrink-0 place-items-center rounded-full">
+              <Shield className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-medium">Privacy</p>
+              <p className="text-subtle text-xs">Visibility, messages &amp; comments</p>
+            </div>
+            <ChevronRight className="text-subtle h-4 w-4" aria-hidden />
+          </Link>
           <button
             type="button"
             className="text-danger flex w-full items-center gap-3 py-4 text-left"

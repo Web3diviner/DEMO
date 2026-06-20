@@ -8,6 +8,7 @@ import {
   profileSchema,
   followResultSchema,
   meSchema,
+  privacySettingsSchema,
   walletSchema,
   earningsSummarySchema,
   withdrawalResultSchema,
@@ -84,6 +85,7 @@ import {
   type Profile,
   type FollowResult,
   type Me,
+  type PrivacySettings,
   type Wallet,
   type EarningsSummary,
   type WithdrawalResult,
@@ -263,6 +265,16 @@ export const api = {
     /** Update editable profile fields. Returns the saved profile. */
     update(input: { displayName: string; bio: string; campus: string | null }): Promise<Me> {
       return request(`/v1/me`, meSchema, { method: "PATCH", body: input });
+    },
+  },
+  privacy: {
+    /** Account privacy controls. */
+    get(signal?: AbortSignal): Promise<PrivacySettings> {
+      return request(`/v1/privacy`, privacySettingsSchema, { signal });
+    },
+    /** Persist updated privacy settings. Returns the saved settings. */
+    update(settings: PrivacySettings): Promise<PrivacySettings> {
+      return request(`/v1/privacy`, privacySettingsSchema, { method: "PATCH", body: settings });
     },
   },
   wallet: {
