@@ -13,6 +13,7 @@ function setup(overrides: Partial<React.ComponentProps<typeof EngagementBar>> = 
     onComment: vi.fn(),
     onShare: vi.fn(),
     onSupport: vi.fn(),
+    onReport: vi.fn(),
     ...overrides,
   };
   render(<EngagementBar {...props} />);

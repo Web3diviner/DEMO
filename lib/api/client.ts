@@ -239,6 +239,20 @@ export const api = {
       });
     },
   },
+  clips: {
+    /** Report a clip; routes into the moderation queue. */
+    report(clipId: string, reason: string): Promise<{ ok: boolean }> {
+      return request(
+        `/v1/clips/${encodeURIComponent(clipId)}/report`,
+        z.object({ ok: z.boolean() }),
+        {
+          method: "POST",
+          body: { reason },
+          idempotencyKey: `report-clip:${clipId}:${reason}`,
+        },
+      );
+    },
+  },
   engagement: {
     /** Confirm a single optimistic engagement action with the server. */
     commit(action: EngagementAction): Promise<EngagementResult> {

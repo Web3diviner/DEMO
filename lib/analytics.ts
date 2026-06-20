@@ -16,7 +16,7 @@ export type AnalyticsEvent =
   | { type: "clip_complete"; clipId: string }
   | {
       type: "engagement";
-      action: "like" | "unlike" | "follow" | "comment" | "share" | "support";
+      action: "like" | "unlike" | "follow" | "comment" | "share" | "support" | "report";
       clipId: string;
     }
   | { type: "feed_switch"; kind: "fyp" | "following" }

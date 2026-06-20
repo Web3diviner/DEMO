@@ -1143,6 +1143,11 @@ export async function handleMock(
     return { clipId: action.clipId ?? "", liked: false, likeCount: 0 };
   }
 
+  if (/^\/v1\/clips\/[^/]+\/report$/.test(route) && opts.method === "POST") {
+    // Routes into the moderation queue in production.
+    return { ok: true };
+  }
+
   if (route === "/v1/uploads/ticket" && opts.method === "POST") {
     const assetId = `asset_${Date.now().toString(36)}`;
     // In production this is a signed tus endpoint at the storage provider. The mock returns a

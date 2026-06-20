@@ -577,6 +577,32 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/VerifyStatus" }
+  /v1/clips/{clipId}/report:
+    post:
+      summary: Report a clip (routes into the moderation queue) — PRD §6.1
+      parameters:
+        - { name: clipId, in: path, required: true, schema: { type: string } }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties: { reason: { type: string } }
+      responses:
+        "200":
+          description: Report accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties: { ok: { type: boolean } }
   /v1/clips/{clipId}/comments:
     get:
       summary: Comments for a clip (cursor-paginated)

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Heart, MessageCircle, Share2, Coins } from "lucide-react";
+import { Heart, MessageCircle, Share2, Coins, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -21,6 +21,7 @@ type Props = {
   onComment: () => void;
   onShare: () => void;
   onSupport: () => void;
+  onReport: () => void;
 };
 
 function Action({
@@ -78,9 +79,10 @@ export function EngagementBar({
   onComment,
   onShare,
   onSupport,
+  onReport,
 }: Props) {
   return (
-    <div className="flex flex-col items-center gap-5">
+    <div className="flex flex-col items-center gap-4">
       <Action
         label={liked ? "Unlike" : "Like"}
         count={likeCount}
@@ -103,6 +105,9 @@ export function EngagementBar({
       </Action>
       <Action label="Share" count={shareCount} onClick={onShare}>
         <Share2 className="h-6 w-6" />
+      </Action>
+      <Action label="More options, including report" onClick={onReport}>
+        <MoreVertical className="h-6 w-6" />
       </Action>
     </div>
   );

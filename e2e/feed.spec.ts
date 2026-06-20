@@ -33,3 +33,18 @@ test("liking a clip toggles optimistically", async ({ page }) => {
     "true",
   );
 });
+
+test("a clip can be reported", async ({ page }) => {
+  await page.goto("/feed");
+  await page
+    .getByRole("button", { name: /more options, including report/i })
+    .first()
+    .click();
+  const dialog = page.getByRole("dialog", { name: /report this clip/i });
+  await expect(dialog).toBeVisible();
+  const submit = dialog.getByRole("button", { name: /submit report/i });
+  await expect(submit).toBeDisabled();
+  await dialog.getByRole("button", { name: /spam or scam/i }).click();
+  await submit.click();
+  await expect(page.getByText(/thanks for reporting/i)).toBeVisible();
+});

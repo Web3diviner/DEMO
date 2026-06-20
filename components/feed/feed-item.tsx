@@ -8,6 +8,7 @@ import { HlsPlayer } from "./hls-player";
 import { EngagementBar } from "./engagement-bar";
 import { CommentSheet } from "./comment-sheet";
 import { TipSheet } from "./tip-sheet";
+import { ReportClipSheet } from "./report-clip-sheet";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils/cn";
 
@@ -30,6 +31,7 @@ export function FeedItem({ clip, active, preload, policy, position, onLike }: Pr
   const dwellStart = React.useRef<number | null>(null);
   const [commentsOpen, setCommentsOpen] = React.useState(false);
   const [tipOpen, setTipOpen] = React.useState(false);
+  const [reportOpen, setReportOpen] = React.useState(false);
 
   // Impression + dwell instrumentation feeds the recommendation store.
   React.useEffect(() => {
@@ -91,6 +93,7 @@ export function FeedItem({ clip, active, preload, policy, position, onLike }: Pr
             track({ type: "engagement", action: "share", clipId: clip.id });
             void navigator.share?.({ text: clip.caption }).catch(() => {});
           }}
+          onReport={() => setReportOpen(true)}
         />
       </div>
 
@@ -120,6 +123,7 @@ export function FeedItem({ clip, active, preload, policy, position, onLike }: Pr
         open={tipOpen}
         onClose={() => setTipOpen(false)}
       />
+      <ReportClipSheet clipId={clip.id} open={reportOpen} onClose={() => setReportOpen(false)} />
     </article>
   );
 }
