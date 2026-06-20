@@ -802,6 +802,35 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/NotificationsPage" }
+  /v1/notifications/preferences:
+    get:
+      summary: Per-category push preferences
+      responses:
+        "200":
+          description: Preferences
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NotificationPrefs" }
+    patch:
+      summary: Toggle a single notification category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [key, value]
+              properties:
+                key:
+                  type: string
+                  enum: [tips, battles, follows, comments, messages]
+                value: { type: boolean }
+      responses:
+        "200":
+          description: Updated preferences
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NotificationPrefs" }
   /v1/notifications/read:
     post:
       summary: Mark all notifications read (idempotent)
@@ -1151,6 +1180,15 @@ components:
           type: array
           items: { $ref: "#/components/schemas/Notification" }
         unread: { type: integer }
+    NotificationPrefs:
+      type: object
+      required: [tips, battles, follows, comments, messages]
+      properties:
+        tips: { type: boolean }
+        battles: { type: boolean }
+        follows: { type: boolean }
+        comments: { type: boolean }
+        messages: { type: boolean }
     Hashtag:
       type: object
       required: [tag, posts]

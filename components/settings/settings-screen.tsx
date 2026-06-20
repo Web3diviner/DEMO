@@ -2,11 +2,54 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Bell, ChevronRight, Crown, Gauge, LogOut, Shield } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Bell,
+  ChevronRight,
+  Coins,
+  Crown,
+  Gauge,
+  LogOut,
+  Mail,
+  MessageCircle,
+  Shield,
+  Swords,
+  UserPlus,
+} from "lucide-react";
 import { useDataPolicy } from "@/lib/hooks/use-data-policy";
 import { getPushState, enablePush, disablePush, type PushState } from "@/lib/push/web-push";
+import { api } from "@/lib/api/client";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils/cn";
+import type { NotificationPrefKey, NotificationPrefs } from "@/lib/api/types";
+
+const NOTIF_CATEGORIES: {
+  key: NotificationPrefKey;
+  title: string;
+  desc: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
+  {
+    key: "tips",
+    title: "Tips & earnings",
+    desc: "When fans support you or a payout is ready",
+    icon: Coins,
+  },
+  {
+    key: "battles",
+    title: "Battle results",
+    desc: "Match starts, votes and outcomes",
+    icon: Swords,
+  },
+  { key: "follows", title: "New followers", desc: "When someone follows you", icon: UserPlus },
+  {
+    key: "comments",
+    title: "Comments",
+    desc: "Replies and mentions on your clips",
+    icon: MessageCircle,
+  },
+  { key: "messages", title: "Direct messages", desc: "New DMs", icon: Mail },
+];
 
 function Toggle({
   checked,
@@ -68,9 +111,28 @@ function Row({
 }
 
 export function SettingsScreen() {
+  const qc = useQueryClient();
   const { policy, manualDataSaver, setManualDataSaver } = useDataPolicy();
   const [push, setPush] = React.useState<PushState>("unsupported");
   const [busy, setBusy] = React.useState(false);
+
+  const { data: prefs } = useQuery({
+    queryKey: ["notification-prefs"],
+    queryFn: ({ signal }) => api.notifications.preferences(signal),
+  });
+
+  const setPref = useMutation({
+    mutationFn: ({ key, value }: { key: NotificationPrefKey; value: boolean }) =>
+      api.notifications.setPreference(key, value),
+    onMutate: ({ key, value }) => {
+      const prev = qc.getQueryData<NotificationPrefs>(["notification-prefs"]);
+      if (prev)
+        qc.setQueryData<NotificationPrefs>(["notification-prefs"], { ...prev, [key]: value });
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => ctx?.prev && qc.setQueryData(["notification-prefs"], ctx.prev),
+    onSuccess: (next) => qc.setQueryData(["notification-prefs"], next),
+  });
 
   // Read current push state on mount (async continuation — lint-safe, no sync setState in effect).
   React.useEffect(() => {
@@ -136,6 +198,27 @@ export function SettingsScreen() {
         {policy.dataSaver && !manualDataSaver && (
           <p className="text-subtle mt-1 text-xs">Data Saver is on automatically (cellular).</p>
         )}
+      </section>
+
+      <section className="mt-6">
+        <h2 className="text-subtle mb-1 text-xs font-medium uppercase">
+          What you&apos;re notified about
+        </h2>
+        <div className="divide-line divide-y">
+          {NOTIF_CATEGORIES.map(({ key, title, desc, icon }) => (
+            <Row key={key} icon={icon} title={title} desc={desc}>
+              <Toggle
+                label={title}
+                checked={prefs ? prefs[key] : false}
+                disabled={!prefs || (setPref.isPending && setPref.variables?.key === key)}
+                onChange={() => prefs && setPref.mutate({ key, value: !prefs[key] })}
+              />
+            </Row>
+          ))}
+        </div>
+        <p className="text-subtle mt-1 text-xs">
+          Applies when push notifications are on. You can still see everything in Activity.
+        </p>
       </section>
 
       <section className="mt-6">

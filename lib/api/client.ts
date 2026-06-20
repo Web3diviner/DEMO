@@ -26,6 +26,7 @@ import {
   dmThreadDetailSchema,
   dmMessageSchema,
   notificationsPageSchema,
+  notificationPrefsSchema,
   moderationItemSchema,
   moderationActionResultSchema,
   searchResultSchema,
@@ -51,6 +52,8 @@ import {
   type DmThreadDetail,
   type DmMessage,
   type NotificationsPage,
+  type NotificationPrefKey,
+  type NotificationPrefs,
   type ModerationItem,
   type ModerationAction,
   type ModerationActionResult,
@@ -505,6 +508,17 @@ export const api = {
     /** The activity inbox (PRD §11) — the durable companion to web-push. */
     list(signal?: AbortSignal): Promise<NotificationsPage> {
       return request(`/v1/notifications`, notificationsPageSchema, { signal });
+    },
+    /** Per-category push preferences. */
+    preferences(signal?: AbortSignal): Promise<NotificationPrefs> {
+      return request(`/v1/notifications/preferences`, notificationPrefsSchema, { signal });
+    },
+    /** Toggle a single category. Returns the full updated preferences. */
+    setPreference(key: NotificationPrefKey, value: boolean): Promise<NotificationPrefs> {
+      return request(`/v1/notifications/preferences`, notificationPrefsSchema, {
+        method: "PATCH",
+        body: { key, value },
+      });
     },
     /** Mark a single notification read (idempotent) — e.g. when its row is opened. */
     read(id: string): Promise<NotificationsPage> {

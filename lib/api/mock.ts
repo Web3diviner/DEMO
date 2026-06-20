@@ -509,6 +509,16 @@ const actor = (handle: string, displayName: string, verified = false) => ({
   avatarUrl: null,
 });
 
+// Per-category push preferences (mutable so toggles persist within a session).
+const notificationPrefs: Record<"tips" | "battles" | "follows" | "comments" | "messages", boolean> =
+  {
+    tips: true,
+    battles: true,
+    follows: true,
+    comments: false,
+    messages: true,
+  };
+
 const notifications: MockNotification[] = [
   {
     id: "n1",
@@ -1499,6 +1509,16 @@ export async function handleMock(
     const msg: MockDm = { id: `m_${Date.now()}`, fromMe: true, body, createdAt: iso(0) };
     t.messages.push(msg);
     return msg;
+  }
+
+  if (route === "/v1/notifications/preferences" && (opts.method ?? "GET") === "GET") {
+    return notificationPrefs;
+  }
+
+  if (route === "/v1/notifications/preferences" && opts.method === "PATCH") {
+    const { key, value } = opts.body as { key: keyof typeof notificationPrefs; value: boolean };
+    if (key in notificationPrefs) notificationPrefs[key] = Boolean(value);
+    return notificationPrefs;
   }
 
   if (route === "/v1/notifications" && (opts.method ?? "GET") === "GET") {

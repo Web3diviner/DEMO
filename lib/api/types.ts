@@ -430,6 +430,23 @@ export const notificationsPageSchema = z.object({
   unread: z.number().int(),
 });
 
+/** Per-category push preferences. The backend respects these when deciding what to send. */
+export const notificationPrefKeySchema = z.enum([
+  "tips",
+  "battles",
+  "follows",
+  "comments",
+  "messages",
+]);
+
+export const notificationPrefsSchema = z.object({
+  tips: z.boolean(),
+  battles: z.boolean(),
+  follows: z.boolean(),
+  comments: z.boolean(),
+  messages: z.boolean(),
+});
+
 /* ── Events (PRD §6.8 — real-world ↔ platform bridge) ──────────────────────────
    Campus shows, concerts, competitions, awards, festivals. Ticketing now;
    NFT tickets (provenance / anti-fraud / resale-royalty) are a later phase. */
@@ -765,6 +782,8 @@ export type DmThreadDetail = z.infer<typeof dmThreadDetailSchema>;
 export type NotificationKind = z.infer<typeof notificationKindSchema>;
 export type Notification = z.infer<typeof notificationSchema>;
 export type NotificationsPage = z.infer<typeof notificationsPageSchema>;
+export type NotificationPrefKey = z.infer<typeof notificationPrefKeySchema>;
+export type NotificationPrefs = z.infer<typeof notificationPrefsSchema>;
 export type ModerationItem = z.infer<typeof moderationItemSchema>;
 export type ModerationAction = "approve" | "remove" | "ban" | "escalate";
 export type ModerationActionResult = z.infer<typeof moderationActionResultSchema>;
