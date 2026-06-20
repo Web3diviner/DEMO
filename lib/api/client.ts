@@ -18,6 +18,7 @@ import {
   voteResultSchema,
   chartSchema,
   creatorAnalyticsSchema,
+  clipAnalyticsSchema,
   tipResultSchema,
   dmThreadSchema,
   dmThreadDetailSchema,
@@ -90,6 +91,7 @@ import {
   type ChartBoard,
   type AnalyticsRange,
   type CreatorAnalytics,
+  type ClipAnalytics,
 } from "./types";
 
 /**
@@ -312,6 +314,12 @@ export const api = {
     /** A creator's performance dashboard for the selected range (server-computed). */
     get(range: AnalyticsRange, signal?: AbortSignal): Promise<CreatorAnalytics> {
       return request(`/v1/analytics?range=${range}`, creatorAnalyticsSchema, { signal });
+    },
+    /** Per-clip breakdown: retention curve, engagement, and traffic sources. */
+    clip(clipId: string, signal?: AbortSignal): Promise<ClipAnalytics> {
+      return request(`/v1/analytics/clips/${encodeURIComponent(clipId)}`, clipAnalyticsSchema, {
+        signal,
+      });
     },
   },
   search: {

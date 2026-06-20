@@ -228,6 +228,42 @@ function buildAnalytics(range: "7d" | "28d" | "90d") {
   };
 }
 
+function buildClipAnalytics(clipId: string) {
+  const top = ANALYTICS_TOP_CLIPS.find((c) => c.id === clipId);
+  const caption = top?.caption ?? "Your clip";
+  const views = top?.views ?? 14_200;
+  const likes = top?.likes ?? 1_800;
+  // Retention: starts at 100%, dips fast in the first 20%, then decays gently with a small re-watch
+  // bump near the hook. Deterministic so the curve is stable across reloads.
+  const retention = Array.from({ length: 21 }, (_, i) => {
+    const pct = i * 5;
+    const t = pct / 100;
+    const base = 1 - 0.55 * t; // gentle linear decay
+    const earlyDrop = 0.18 * Math.exp(-pct / 6); // sharp initial fall, inverted below
+    const hookBump = pct > 45 && pct < 60 ? 0.06 : 0;
+    const value = Math.max(0.12, Math.min(1, base - earlyDrop + hookBump));
+    return { pct, value: Math.round(value * 100) / 100 };
+  });
+  const avgWatchPct = retention.reduce((s, p) => s + p.value, 0) / retention.length;
+  return {
+    clip: { id: clipId, caption },
+    views,
+    likes,
+    comments: Math.round(likes * 0.18),
+    shares: Math.round(likes * 0.12),
+    avgWatchPct: Math.round(avgWatchPct * 100) / 100,
+    completionRate: retention[retention.length - 1].value,
+    retention,
+    sources: [
+      { source: "fyp" as const, share: 0.62 },
+      { source: "following" as const, share: 0.18 },
+      { source: "profile" as const, share: 0.09 },
+      { source: "search" as const, share: 0.06 },
+      { source: "share" as const, share: 0.05 },
+    ],
+  };
+}
+
 const CREDIT_PACKS = [
   { id: "pack_100", credits: 100, price: { currency: "NGN" as const, minor: 50_000 }, badge: null },
   {
@@ -1153,6 +1189,10 @@ export async function handleMock(
   if (route === "/v1/analytics" && (opts.method ?? "GET") === "GET") {
     const range = new URLSearchParams(query).get("range");
     return buildAnalytics(range === "28d" || range === "90d" ? range : "7d");
+  }
+
+  if (/^\/v1\/analytics\/clips\/[^/]+$/.test(route) && (opts.method ?? "GET") === "GET") {
+    return buildClipAnalytics(route.split("/")[4]);
   }
 
   if (route === "/v1/events" && (opts.method ?? "GET") === "GET") {

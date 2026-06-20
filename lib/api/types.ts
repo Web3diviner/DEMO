@@ -201,6 +201,34 @@ export const creatorAnalyticsSchema = z.object({
   topCampuses: z.array(audienceCampusSchema),
 });
 
+/* ── Per-clip analytics (drill-down from the Studio's top clips) ───────────────
+   `retention` is the audience-retention curve: at each position `pct` (0–100 of
+   the clip's duration), `value` is the share still watching (0..1). Traffic
+   `sources` show where the views came from. */
+export const trafficSourceSchema = z.enum(["fyp", "following", "profile", "search", "share"]);
+
+export const retentionPointSchema = z.object({
+  pct: z.number(), // 0..100 position through the clip
+  value: z.number(), // 0..1 share still watching
+});
+
+export const clipTrafficSchema = z.object({
+  source: trafficSourceSchema,
+  share: z.number(), // 0..1
+});
+
+export const clipAnalyticsSchema = z.object({
+  clip: z.object({ id: z.string(), caption: z.string() }),
+  views: z.number().int(),
+  likes: z.number().int(),
+  comments: z.number().int(),
+  shares: z.number().int(),
+  avgWatchPct: z.number(), // 0..1
+  completionRate: z.number(), // 0..1
+  retention: z.array(retentionPointSchema),
+  sources: z.array(clipTrafficSchema),
+});
+
 export const withdrawalResultSchema = z.object({
   reference: z.string(),
   status: z.enum(["processing", "failed"]),
@@ -674,6 +702,10 @@ export type AnalyticsPoint = z.infer<typeof analyticsPointSchema>;
 export type AnalyticsClip = z.infer<typeof analyticsClipSchema>;
 export type AudienceCampus = z.infer<typeof audienceCampusSchema>;
 export type CreatorAnalytics = z.infer<typeof creatorAnalyticsSchema>;
+export type TrafficSource = z.infer<typeof trafficSourceSchema>;
+export type ClipTraffic = z.infer<typeof clipTrafficSchema>;
+export type RetentionPoint = z.infer<typeof retentionPointSchema>;
+export type ClipAnalytics = z.infer<typeof clipAnalyticsSchema>;
 export type CreditPack = z.infer<typeof creditPackSchema>;
 export type TopUpIntent = z.infer<typeof topUpIntentSchema>;
 export type TopUpStatus = z.infer<typeof topUpStatusSchema>;

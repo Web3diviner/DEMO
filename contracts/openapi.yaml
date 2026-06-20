@@ -790,6 +790,20 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/CreatorAnalytics" }
+  /v1/analytics/clips/{clipId}:
+    get:
+      summary: Per-clip analytics — retention curve, engagement, and traffic sources
+      parameters:
+        - name: clipId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Clip analytics
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClipAnalytics" }
 components:
   schemas:
     Money:
@@ -1415,6 +1429,41 @@ components:
         topCampuses:
           type: array
           items: { $ref: "#/components/schemas/AudienceCampus" }
+    RetentionPoint:
+      type: object
+      required: [pct, value]
+      properties:
+        pct: { type: number, description: "0..100 position through the clip" }
+        value: { type: number, description: "0..1 share still watching" }
+    ClipTraffic:
+      type: object
+      required: [source, share]
+      properties:
+        source: { type: string, enum: [fyp, following, profile, search, share] }
+        share: { type: number, description: "0..1" }
+    ClipAnalytics:
+      type: object
+      required:
+        [clip, views, likes, comments, shares, avgWatchPct, completionRate, retention, sources]
+      properties:
+        clip:
+          type: object
+          required: [id, caption]
+          properties:
+            id: { type: string }
+            caption: { type: string }
+        views: { type: integer }
+        likes: { type: integer }
+        comments: { type: integer }
+        shares: { type: integer }
+        avgWatchPct: { type: number, description: "0..1" }
+        completionRate: { type: number, description: "0..1" }
+        retention:
+          type: array
+          items: { $ref: "#/components/schemas/RetentionPoint" }
+        sources:
+          type: array
+          items: { $ref: "#/components/schemas/ClipTraffic" }
     CreditPack:
       type: object
       required: [id, credits, price, badge]

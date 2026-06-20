@@ -3,7 +3,16 @@
 import * as React from "react";
 import Link from "next/link";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Eye, Clock, UserPlus, TrendingUp, Heart, ArrowUpRight } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  ChevronRight,
+  Clock,
+  Eye,
+  Heart,
+  TrendingUp,
+  UserPlus,
+} from "lucide-react";
 import { api } from "@/lib/api/client";
 import { format } from "@/lib/money";
 import { ViewsChart } from "./views-chart";
@@ -152,22 +161,28 @@ export function AnalyticsScreen() {
           </h2>
           <ul className="divide-line/60 divide-y">
             {data.topClips.map((clip, i) => (
-              <li key={clip.id} className="flex items-center gap-3 py-3">
-                <span className="text-subtle w-4 text-center text-sm font-semibold tabular-nums">
-                  {i + 1}
-                </span>
-                <span className="bg-elevated h-11 w-11 shrink-0 rounded-md" aria-hidden />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{clip.caption}</p>
-                  <p className="text-subtle flex items-center gap-2 text-xs tabular-nums">
-                    <span className="flex items-center gap-1">
-                      <Eye className="h-3 w-3" aria-hidden /> {nfCompact.format(clip.views)}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Heart className="h-3 w-3" aria-hidden /> {nfCompact.format(clip.likes)}
-                    </span>
-                  </p>
-                </div>
+              <li key={clip.id}>
+                <Link
+                  href={`/analytics/${clip.id}`}
+                  className="hover:bg-elevated/60 -mx-2 flex items-center gap-3 rounded-lg px-2 py-3"
+                >
+                  <span className="text-subtle w-4 text-center text-sm font-semibold tabular-nums">
+                    {i + 1}
+                  </span>
+                  <span className="bg-elevated h-11 w-11 shrink-0 rounded-md" aria-hidden />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{clip.caption}</p>
+                    <p className="text-subtle flex items-center gap-2 text-xs tabular-nums">
+                      <span className="flex items-center gap-1">
+                        <Eye className="h-3 w-3" aria-hidden /> {nfCompact.format(clip.views)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Heart className="h-3 w-3" aria-hidden /> {nfCompact.format(clip.likes)}
+                      </span>
+                    </p>
+                  </div>
+                  <ChevronRight className="text-subtle h-4 w-4 shrink-0" aria-hidden />
+                </Link>
               </li>
             ))}
           </ul>
