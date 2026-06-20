@@ -100,6 +100,8 @@ export const sessionUserSchema = z.object({
   /** KYC tier 0..3. */
   kycTier: z.number().int(),
   verifiedCreator: z.boolean(),
+  /** Soulbound verified-fan badge (<$1) — grants extra voting weight (PRD §8.4). */
+  verifiedFan: z.boolean(),
 });
 
 export const otpChallengeSchema = z.object({ challengeId: z.string() });

@@ -240,6 +240,7 @@ export function SettingsScreen() {
               <p className="text-subtle text-xs">
                 {session.user ? KYC_LABEL[session.user.kycTier] : "Not signed in"}
                 {session.user?.verifiedCreator ? " · Creator" : ""}
+                {session.user?.verifiedFan ? " · Verified fan" : ""}
               </p>
             </div>
             {session.user && session.user.kycTier < 2 && (
@@ -252,6 +253,18 @@ export function SettingsScreen() {
               </button>
             )}
           </div>
+          {session.user && !session.user.verifiedFan && !session.user.verifiedCreator && (
+            <Link href="/fan/verify" className="flex items-center gap-3 py-4">
+              <span className="bg-brand/15 text-brand grid h-9 w-9 shrink-0 place-items-center rounded-full">
+                <BadgeCheck className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium">Become a verified fan</p>
+                <p className="text-subtle text-xs">2× your votes · &lt; $1</p>
+              </div>
+              <ChevronRight className="text-subtle h-4 w-4" aria-hidden />
+            </Link>
+          )}
           <Link href="/memberships" className="flex items-center gap-3 py-4">
             <span className="bg-elevated text-muted grid h-9 w-9 shrink-0 place-items-center rounded-full">
               <Crown className="h-4 w-4" />

@@ -23,6 +23,7 @@ const DEMO_USER: SessionUser = {
   // Not yet a verified creator, so the $1 verification flow stays demonstrable. (A creator's public
   // verified badge comes from the profile API, independent of this session flag.)
   verifiedCreator: false,
+  verifiedFan: false,
 };
 
 export type SessionState =

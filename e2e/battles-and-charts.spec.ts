@@ -13,8 +13,8 @@ test("a fan can open a live battle and cast a Credit-funded vote", async ({ page
   await page.getByRole("link", { name: /freshers' rap clash/i }).click();
   await expect(page).toHaveURL(/\/battles\/battle_live/);
 
-  // Verified-weight affordance is shown.
-  await expect(page.getByText(/your verified vote counts/i)).toBeVisible();
+  // Vote-weight affordance is shown (unverified users see the upsell to 2×).
+  await expect(page.getByRole("link", { name: /verify to 2/i })).toBeVisible();
 
   // Vote for the first contestant.
   await page

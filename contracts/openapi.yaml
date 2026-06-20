@@ -521,6 +521,34 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/TopUpStatus" }
+  /v1/fans/verify/intent:
+    post:
+      summary: Create the verified-fan payment intent (<$1, Paystack) — PRD §7.3
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Payment intent
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VerifyIntent" }
+  /v1/fans/verify/{reference}/status:
+    get:
+      summary: Verified-fan status — badge appears only once the mint confirms
+      parameters:
+        - name: reference
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Status (poll until verified/failed)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VerifyStatus" }
   /v1/creators/register/intent:
     post:
       summary: Create the $1 creator-verification payment intent (Paystack) — PRD §7.3
@@ -1143,13 +1171,14 @@ components:
   schemas:
     SessionUser:
       type: object
-      required: [handle, displayName, campus, kycTier, verifiedCreator]
+      required: [handle, displayName, campus, kycTier, verifiedCreator, verifiedFan]
       properties:
         handle: { type: string }
         displayName: { type: string }
         campus: { type: string, nullable: true }
         kycTier: { type: integer, description: "0 browse · 1 phone · 2 ID/BVN · 3 full" }
         verifiedCreator: { type: boolean }
+        verifiedFan: { type: boolean }
     OtpChallenge:
       type: object
       required: [challengeId]

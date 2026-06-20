@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Clock, Trophy, Sparkles, Check, ShieldCheck, Loader2 } from "lucide-react";
 import { api } from "@/lib/api/client";
+import { useSession } from "@/lib/auth/session";
 import { format, gte } from "@/lib/money";
 import { useCountdown } from "@/lib/hooks/use-countdown";
 import { track } from "@/lib/analytics";
@@ -13,6 +14,9 @@ import type { BattleContestant, VoteResult, Wallet } from "@/lib/api/types";
 
 export function BattleVote({ id }: { id: string }) {
   const qc = useQueryClient();
+  const session = useSession();
+  // Verified users (paid + KYC'd) carry more weight in integrity-sensitive votes (PRD §8.4).
+  const isVerified = !!(session.user?.verifiedFan || session.user?.verifiedCreator);
 
   const { data: battle, status } = useQuery({
     queryKey: ["battle", id],
@@ -104,15 +108,26 @@ export function BattleVote({ id }: { id: string }) {
 
       {/* Footer: voting affordances / state messaging */}
       <div className="mt-4">
-        {isVoting && !voted && (
+        {isVoting && !voted && isVerified && (
           <div className="border-line bg-surface flex items-center justify-between rounded-lg border p-3 text-sm">
             <span className="flex items-center gap-1.5">
               <ShieldCheck className="text-gold h-4 w-4" aria-hidden />
-              Your verified vote counts{" "}
-              <strong className="mx-1">{battle.viewer.voteWeight}×</strong>
+              Your verified vote counts <strong className="mx-1">2×</strong>
             </span>
             <span className="text-subtle">{format(battle.voteCost)}/vote</span>
           </div>
+        )}
+        {isVoting && !voted && !isVerified && (
+          <Link
+            href="/fan/verify"
+            className="border-line bg-surface hover:border-line-strong flex items-center justify-between rounded-lg border p-3 text-sm transition-colors"
+          >
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="text-subtle h-4 w-4" aria-hidden />
+              Standard vote · <strong className="mx-1">1×</strong>
+            </span>
+            <span className="text-brand font-medium">Verify to 2× →</span>
+          </Link>
         )}
         {isVoting && !voted && !canAfford && (
           <Link

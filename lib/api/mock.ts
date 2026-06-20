@@ -1037,7 +1037,14 @@ export async function handleMock(
     if (code !== "123456") throw new Error("That code isn't right. Try 123456.");
     return {
       // New users land on the profile step; phone verification lifts them to Tier 1.
-      user: { handle: "", displayName: "", campus: null, kycTier: 1, verifiedCreator: false },
+      user: {
+        handle: "",
+        displayName: "",
+        campus: null,
+        kycTier: 1,
+        verifiedCreator: false,
+        verifiedFan: false,
+      },
       isNew: true,
     };
   }
@@ -1051,7 +1058,14 @@ export async function handleMock(
     if (!/^[a-z0-9._]{3,20}$/.test(handle)) throw new Error("Pick a handle (3–20 letters/numbers)");
     if (!displayName.trim()) throw new Error("Add a display name");
     return {
-      user: { handle, displayName: displayName.trim(), campus, kycTier: 1, verifiedCreator: false },
+      user: {
+        handle,
+        displayName: displayName.trim(),
+        campus,
+        kycTier: 1,
+        verifiedCreator: false,
+        verifiedFan: false,
+      },
     };
   }
 
@@ -1351,6 +1365,27 @@ export async function handleMock(
   }
 
   if (/^\/v1\/creators\/register\/[^/]+\/status$/.test(route) && (opts.method ?? "GET") === "GET") {
+    const reference = route.split("/")[4];
+    const intent = verifyIntents.get(reference);
+    if (!intent) return { reference, status: "failed" as const };
+    const now = Date.now();
+    if (now < intent.paidAt) return { reference, status: "pending" as const };
+    if (now < intent.mintedAt) return { reference, status: "minting" as const };
+    verifyIntents.delete(reference);
+    return { reference, status: "verified" as const };
+  }
+
+  if (route === "/v1/fans/verify/intent" && opts.method === "POST") {
+    const reference = `fv_${Date.now().toString(36)}`;
+    verifyIntents.set(reference, { paidAt: Date.now() + 1500, mintedAt: Date.now() + 3000 });
+    return {
+      reference,
+      accessCode: `ac_mock_${reference}`,
+      price: { currency: "NGN" as const, minor: 80_000 }, // ~$0.50, < $1
+    };
+  }
+
+  if (/^\/v1\/fans\/verify\/[^/]+\/status$/.test(route) && (opts.method ?? "GET") === "GET") {
     const reference = route.split("/")[4];
     const intent = verifyIntents.get(reference);
     if (!intent) return { reference, status: "failed" as const };

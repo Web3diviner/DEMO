@@ -286,6 +286,23 @@ export const api = {
       });
     },
   },
+  fans: {
+    /** Create the verified-fan payment intent (<$1, Paystack). */
+    verifyIntent(): Promise<VerifyIntent> {
+      return request(`/v1/fans/verify/intent`, verifyIntentSchema, {
+        method: "POST",
+        idempotencyKey: `fanverify:${Date.now()}`,
+      });
+    },
+    /** Poll verified-fan status; badge appears only once `verified` (mint confirmed). */
+    verifyStatus(reference: string, signal?: AbortSignal): Promise<VerifyStatus> {
+      return request(
+        `/v1/fans/verify/${encodeURIComponent(reference)}/status`,
+        verifyStatusSchema,
+        { signal },
+      );
+    },
+  },
   creators: {
     /** Create the $1 verification payment intent (Paystack). */
     registerIntent(): Promise<VerifyIntent> {
