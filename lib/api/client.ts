@@ -410,6 +410,13 @@ export const api = {
     list(signal?: AbortSignal): Promise<NotificationsPage> {
       return request(`/v1/notifications`, notificationsPageSchema, { signal });
     },
+    /** Mark a single notification read (idempotent) — e.g. when its row is opened. */
+    read(id: string): Promise<NotificationsPage> {
+      return request(`/v1/notifications/${encodeURIComponent(id)}/read`, notificationsPageSchema, {
+        method: "POST",
+        idempotencyKey: `notifications:read:${id}`,
+      });
+    },
     /** Mark everything read. Idempotent; returns the cleared page. */
     markAllRead(): Promise<NotificationsPage> {
       return request(`/v1/notifications/read`, notificationsPageSchema, {

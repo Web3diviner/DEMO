@@ -1144,6 +1144,13 @@ export async function handleMock(
     return { items: notifications, unread: 0 };
   }
 
+  if (/^\/v1\/notifications\/[^/]+\/read$/.test(route) && opts.method === "POST") {
+    const id = route.split("/")[3];
+    const n = notifications.find((x) => x.id === id);
+    if (n) n.read = true;
+    return { items: notifications, unread: notifications.filter((x) => !x.read).length };
+  }
+
   if (/^\/v1\/clips\/[^/]+\/tip$/.test(route) && opts.method === "POST") {
     const clipId = route.split("/")[3];
     const { credits } = opts.body as { credits: number };

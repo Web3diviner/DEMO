@@ -659,6 +659,24 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/NotificationsPage" }
+  /v1/notifications/{id}/read:
+    post:
+      summary: Mark a single notification read (idempotent)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: The inbox with the item read and unread recomputed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NotificationsPage" }
   /v1/charts/{board}:
     get:
       summary: Leaderboard for a board (PRD §6.4); Rising ranks growth velocity

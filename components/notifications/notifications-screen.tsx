@@ -45,7 +45,7 @@ function bucket(iso: string): "Today" | "This week" | "Earlier" {
   return "Earlier";
 }
 
-function Row({ n }: { n: Notification }) {
+function Row({ n, onOpen }: { n: Notification; onOpen: (id: string) => void }) {
   const { Icon, tint } = KIND[n.kind];
   const inner = (
     <>
@@ -81,7 +81,11 @@ function Row({ n }: { n: Notification }) {
   );
 
   return n.href ? (
-    <Link href={n.href} className={cn(rowClass, "hover:bg-elevated/60 rounded-lg")}>
+    <Link
+      href={n.href}
+      onClick={() => !n.read && onOpen(n.id)}
+      className={cn(rowClass, "hover:bg-elevated/60 rounded-lg")}
+    >
       {inner}
     </Link>
   ) : (
@@ -89,30 +93,55 @@ function Row({ n }: { n: Notification }) {
   );
 }
 
+const FILTERS = [
+  { id: "all", label: "All" },
+  { id: "unread", label: "Unread" },
+  { id: "earnings", label: "Earnings" },
+] as const;
+type Filter = (typeof FILTERS)[number]["id"];
+
+function matchesFilter(n: Notification, filter: Filter): boolean {
+  if (filter === "unread") return !n.read;
+  if (filter === "earnings") return n.kind === "tip" || n.kind === "earning";
+  return true;
+}
+
 export function NotificationsScreen() {
   const qc = useQueryClient();
+  const [filter, setFilter] = React.useState<Filter>("all");
   const { data, status } = useQuery({
     queryKey: ["notifications"],
     queryFn: ({ signal }) => api.notifications.list(signal),
   });
 
-  const markRead = useMutation({
+  /** Shared optimistic helper: apply `mutate` to the cached page, recomputing unread. */
+  const optimistic = (mutate: (n: Notification) => Notification) => {
+    const prev = qc.getQueryData<NotificationsPage>(["notifications"]);
+    if (prev) {
+      const items = prev.items.map(mutate);
+      qc.setQueryData<NotificationsPage>(["notifications"], {
+        items,
+        unread: items.filter((n) => !n.read).length,
+      });
+    }
+    return { prev };
+  };
+
+  const markAll = useMutation({
     mutationFn: () => api.notifications.markAllRead(),
-    // Optimistic: clear the dots immediately, reconcile with the server reply.
     onMutate: () => {
-      const prev = qc.getQueryData<NotificationsPage>(["notifications"]);
-      if (prev) {
-        qc.setQueryData<NotificationsPage>(["notifications"], {
-          items: prev.items.map((n) => ({ ...n, read: true })),
-          unread: 0,
-        });
-      }
       track({ type: "route_view", path: "/notifications:read-all" });
-      return { prev };
+      return optimistic((n) => (n.read ? n : { ...n, read: true }));
     },
-    onError: (_e, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(["notifications"], ctx.prev);
-    },
+    onError: (_e, _v, ctx) => ctx?.prev && qc.setQueryData(["notifications"], ctx.prev),
+    onSuccess: (page) => qc.setQueryData(["notifications"], page),
+  });
+
+  // Mark a single item read when its row is opened. Optimistic so the dot clears before navigation.
+  const markOne = useMutation({
+    mutationFn: (id: string) => api.notifications.read(id),
+    onMutate: (id) => optimistic((n) => (n.id === id ? { ...n, read: true } : n)),
+    onError: (_e, _id, ctx) => ctx?.prev && qc.setQueryData(["notifications"], ctx.prev),
     onSuccess: (page) => qc.setQueryData(["notifications"], page),
   });
 
@@ -121,11 +150,13 @@ export function NotificationsScreen() {
     const order: Array<"Today" | "This week" | "Earlier"> = ["Today", "This week", "Earlier"];
     const by = new Map<string, Notification[]>();
     for (const n of data?.items ?? []) {
+      if (!matchesFilter(n, filter)) continue;
       const key = bucket(n.createdAt);
       (by.get(key) ?? by.set(key, []).get(key)!).push(n);
     }
     return order.filter((k) => by.has(k)).map((k) => [k, by.get(k)!] as const);
-  }, [data]);
+  }, [data, filter]);
+  const visibleCount = groups.reduce((sum, [, items]) => sum + items.length, 0);
 
   return (
     <main id="main" className="mx-auto max-w-md px-4 pt-6 pb-28">
@@ -143,12 +174,42 @@ export function NotificationsScreen() {
         </h1>
         <button
           type="button"
-          onClick={() => markRead.mutate()}
-          disabled={unread === 0 || markRead.isPending}
+          onClick={() => markAll.mutate()}
+          disabled={unread === 0 || markAll.isPending}
           className="text-brand flex items-center gap-1.5 text-sm font-medium disabled:opacity-40"
         >
           <CheckCheck className="h-4 w-4" aria-hidden /> Mark all read
         </button>
+      </div>
+
+      {/* Filters */}
+      <div role="tablist" aria-label="Filter activity" className="mt-4 flex gap-2">
+        {FILTERS.map((f) => {
+          const active = filter === f.id;
+          const count =
+            f.id === "unread"
+              ? unread
+              : (data?.items.filter((n) => matchesFilter(n, f.id)).length ?? 0);
+          return (
+            <button
+              key={f.id}
+              role="tab"
+              aria-selected={active}
+              onClick={() => setFilter(f.id)}
+              className={cn(
+                "rounded-pill px-3.5 py-1.5 text-sm font-medium transition-colors",
+                active ? "bg-brand text-brand-fg" : "bg-surface text-muted hover:text-fg",
+              )}
+            >
+              {f.label}
+              {f.id !== "all" && count > 0 && (
+                <span className={cn("ml-1.5 tabular-nums", active ? "opacity-80" : "text-subtle")}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {status === "pending" && (
@@ -165,10 +226,14 @@ export function NotificationsScreen() {
         </p>
       )}
 
-      {status === "success" && data.items.length === 0 && (
+      {status === "success" && visibleCount === 0 && (
         <div className="text-subtle grid place-items-center gap-2 py-20 text-center text-sm">
           <Bell className="h-8 w-8" aria-hidden />
-          You&apos;re all caught up. Activity from fans and battles shows up here.
+          {filter === "unread"
+            ? "No unread activity — you're all caught up."
+            : filter === "earnings"
+              ? "No earnings activity yet. Tips and payouts show up here."
+              : "You're all caught up. Activity from fans and battles shows up here."}
         </div>
       )}
 
@@ -181,7 +246,7 @@ export function NotificationsScreen() {
             <ul className="divide-line/60 divide-y">
               {items.map((n) => (
                 <li key={n.id}>
-                  <Row n={n} />
+                  <Row n={n} onOpen={(id) => markOne.mutate(id)} />
                 </li>
               ))}
             </ul>
