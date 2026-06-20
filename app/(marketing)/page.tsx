@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/ui/logo";
+import { HeroMusician } from "@/components/marketing/hero-musician";
 
 /**
  * Landing — static, RSC, near-zero client JS. First impression on a cold cellular connection must
@@ -19,7 +20,11 @@ export default function Landing() {
         className="pointer-events-none absolute -top-40 h-96 w-96 rounded-full opacity-40 blur-3xl"
         style={{ background: "radial-gradient(circle, var(--brand), transparent 70%)" }}
       />
-      <Wordmark markSize={40} className="mb-6 text-2xl" />
+      <HeroMusician
+        size={232}
+        className="mb-6 [filter:drop-shadow(0_16px_40px_oklch(0_0_0/0.45))]"
+      />
+      <Wordmark markSize={36} className="mb-5 text-2xl" />
       <span className="rounded-pill border-line text-muted mb-4 border px-3 py-1 text-xs font-medium">
         Naija campus talent · live now
       </span>
