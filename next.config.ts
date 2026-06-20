@@ -51,6 +51,9 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
+  // Emit a self-contained server bundle (.next/standalone) so the production image ships only the
+  // runtime files + traced node_modules — small, fast to pull, and host-agnostic.
+  output: "standalone",
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [{ protocol: "https", hostname: "**" }],

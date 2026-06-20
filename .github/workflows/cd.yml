@@ -1,0 +1,116 @@
+name: CD
+
+# Continuous delivery. Runs only after the CI workflow succeeds on main (so we never ship a red
+# build), then builds the production container and publishes it to GitHub Container Registry.
+# Trigger: CI completion on main (auto), or a manual dispatch for re-runs / rollbacks.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  publish:
+    name: Build & publish image
+    runs-on: ubuntu-latest
+    # Gate: only on a green CI run (or an explicit manual dispatch).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.meta.outputs.tags }}
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: Checkout the exact commit CI validated
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive image tags & labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long
+            type=sha,format=short
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Job summary
+        run: |
+          {
+            echo "### Image published 🚀"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Repository | \`${{ env.IMAGE }}\` |"
+            echo "| Digest | \`${{ steps.build.outputs.digest }}\` |"
+            echo "| Commit | \`${{ github.event.workflow_run.head_sha || github.sha }}\` |"
+            echo ""
+            echo "Pull & run:"
+            echo '```sh'
+            echo "docker run -p 3000:3000 ${{ env.IMAGE }}:latest"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: Deploy to production
+    needs: publish
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+    env:
+      DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
+      IMAGE_REF: ${{ needs.publish.outputs.image }}
+      IMAGE_DIGEST: ${{ needs.publish.outputs.digest }}
+    steps:
+      # Trigger the host to pull the freshly published image. This is intentionally generic: set a
+      # DEPLOY_WEBHOOK_URL secret (Cloud Run / Render / Coolify / your own pull-and-restart hook)
+      # and it fires; with no secret the step is skipped, so the image still publishes cleanly.
+      - name: Notify deploy target
+        if: env.DEPLOY_WEBHOOK_URL != ''
+        run: |
+          curl --fail --silent --show-error -X POST \
+            -H 'content-type: application/json' \
+            -d "{\"image\":\"${IMAGE_REF}\",\"digest\":\"${IMAGE_DIGEST}\"}" \
+            "$DEPLOY_WEBHOOK_URL"
+
+      - name: No deploy target configured
+        if: env.DEPLOY_WEBHOOK_URL == ''
+        run: |
+          echo "No DEPLOY_WEBHOOK_URL secret set — image published to GHCR but no host was notified." >> "$GITHUB_STEP_SUMMARY"
+          echo "Add the secret (Settings → Secrets → Actions) to enable automatic rollout." >> "$GITHUB_STEP_SUMMARY"
