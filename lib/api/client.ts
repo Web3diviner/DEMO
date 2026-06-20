@@ -17,6 +17,7 @@ import {
   dmThreadSchema,
   dmThreadDetailSchema,
   dmMessageSchema,
+  notificationsPageSchema,
   moderationItemSchema,
   moderationActionResultSchema,
   searchResultSchema,
@@ -41,6 +42,7 @@ import {
   type DmThread,
   type DmThreadDetail,
   type DmMessage,
+  type NotificationsPage,
   type ModerationItem,
   type ModerationAction,
   type ModerationActionResult,
@@ -400,6 +402,19 @@ export const api = {
         method: "POST",
         body: { body, localId },
         idempotencyKey: localId,
+      });
+    },
+  },
+  notifications: {
+    /** The activity inbox (PRD §11) — the durable companion to web-push. */
+    list(signal?: AbortSignal): Promise<NotificationsPage> {
+      return request(`/v1/notifications`, notificationsPageSchema, { signal });
+    },
+    /** Mark everything read. Idempotent; returns the cleared page. */
+    markAllRead(): Promise<NotificationsPage> {
+      return request(`/v1/notifications/read`, notificationsPageSchema, {
+        method: "POST",
+        idempotencyKey: "notifications:read-all",
       });
     },
   },

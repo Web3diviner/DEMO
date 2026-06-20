@@ -254,6 +254,90 @@ function iso(secondsFromNow: number) {
   return new Date(Date.now() + secondsFromNow * 1000).toISOString();
 }
 
+// ── Notifications / Activity inbox ───────────────────────────────────────────
+type MockNotification = {
+  id: string;
+  kind: "follow" | "like" | "comment" | "tip" | "battle" | "earning" | "system";
+  text: string;
+  createdAt: string;
+  read: boolean;
+  actor: { handle: string; displayName: string; verified: boolean; avatarUrl: null } | null;
+  href: string | null;
+};
+
+const actor = (handle: string, displayName: string, verified = false) => ({
+  handle,
+  displayName,
+  verified,
+  avatarUrl: null,
+});
+
+const notifications: MockNotification[] = [
+  {
+    id: "n1",
+    kind: "tip",
+    text: "Ada sent you 50 Credits on “Freestyle Friday”",
+    createdAt: iso(-60 * 8),
+    read: false,
+    actor: actor("ada.beats", "Ada", true),
+    href: "/credits",
+  },
+  {
+    id: "n2",
+    kind: "battle",
+    text: "You won your battle against @tunde.flow 🏆",
+    createdAt: iso(-3600 * 2),
+    read: false,
+    actor: actor("tunde.flow", "Tunde"),
+    href: "/battles",
+  },
+  {
+    id: "n3",
+    kind: "follow",
+    text: "Zainab started following you",
+    createdAt: iso(-3600 * 5),
+    read: false,
+    actor: actor("zainab.sings", "Zainab", true),
+    href: "/u/zainab.sings",
+  },
+  {
+    id: "n4",
+    kind: "comment",
+    text: "Emeka commented: “This is fire 🔥🔥”",
+    createdAt: iso(-3600 * 9),
+    read: true,
+    actor: actor("emeka.raw", "Emeka"),
+    href: "/feed",
+  },
+  {
+    id: "n5",
+    kind: "earning",
+    text: "Your weekly earnings of ₦12,400 are ready to withdraw",
+    createdAt: iso(-3600 * 26),
+    read: true,
+    actor: null,
+    href: "/credits",
+  },
+  {
+    id: "n6",
+    kind: "like",
+    text: "Bola and 23 others liked your clip",
+    createdAt: iso(-3600 * 30),
+    read: true,
+    actor: actor("bola.x", "Bola"),
+    href: "/feed",
+  },
+  {
+    id: "n7",
+    kind: "system",
+    text: "Your creator verification is confirmed — your badge is live.",
+    createdAt: iso(-3600 * 50),
+    read: true,
+    actor: null,
+    href: "/profile",
+  },
+];
+
 // ── Talent Intelligence / scout (PRD §6.9) ───────────────────────────────────
 const CAMPUSES = ["UNILAG", "UI Ibadan", "ABU Zaria", "OAU", "UNN"];
 const GENRES = ["Afrobeats", "Rap", "Gospel", "R&B", "Amapiano"];
@@ -1049,6 +1133,15 @@ export async function handleMock(
     const msg: MockDm = { id: `m_${Date.now()}`, fromMe: true, body, createdAt: iso(0) };
     t.messages.push(msg);
     return msg;
+  }
+
+  if (route === "/v1/notifications" && (opts.method ?? "GET") === "GET") {
+    return { items: notifications, unread: notifications.filter((n) => !n.read).length };
+  }
+
+  if (route === "/v1/notifications/read" && opts.method === "POST") {
+    for (const n of notifications) n.read = true;
+    return { items: notifications, unread: 0 };
   }
 
   if (/^\/v1\/clips\/[^/]+\/tip$/.test(route) && opts.method === "POST") {

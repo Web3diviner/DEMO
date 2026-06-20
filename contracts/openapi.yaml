@@ -636,6 +636,29 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/DmMessage" }
+  /v1/notifications:
+    get:
+      summary: The signed-in user's activity inbox (in-app companion to web-push)
+      responses:
+        "200":
+          description: Notifications with the current unread count
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NotificationsPage" }
+  /v1/notifications/read:
+    post:
+      summary: Mark all notifications read (idempotent)
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: The cleared inbox (unread = 0)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NotificationsPage" }
   /v1/charts/{board}:
     get:
       summary: Leaderboard for a board (PRD §6.4); Rising ranks growth velocity
@@ -853,6 +876,29 @@ components:
         messages:
           type: array
           items: { $ref: "#/components/schemas/DmMessage" }
+    Notification:
+      type: object
+      required: [id, kind, text, createdAt, read, actor, href]
+      properties:
+        id: { type: string }
+        kind:
+          type: string
+          enum: [follow, like, comment, tip, battle, earning, system]
+        text: { type: string }
+        createdAt: { type: string, format: date-time }
+        read: { type: boolean }
+        actor:
+          nullable: true
+          allOf: [{ $ref: "#/components/schemas/DmParticipant" }]
+        href: { type: string, nullable: true }
+    NotificationsPage:
+      type: object
+      required: [items, unread]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Notification" }
+        unread: { type: integer }
     Hashtag:
       type: object
       required: [tag, posts]

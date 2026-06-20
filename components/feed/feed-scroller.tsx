@@ -8,6 +8,7 @@ import { api } from "@/lib/api/client";
 import type { Clip, FeedKind } from "@/lib/api/types";
 import { useDataPolicy } from "@/lib/hooks/use-data-policy";
 import { getEngagementQueue } from "@/lib/queue/shared";
+import { NotificationsBell } from "@/components/notifications/notifications-bell";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils/cn";
 import { FeedItem } from "./feed-item";
@@ -119,6 +120,7 @@ export function FeedScroller() {
         >
           <Search className="h-5 w-5" aria-hidden />
         </Link>
+        <NotificationsBell className="relative grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md" />
       </div>
 
       {/* For You / Following switch (PRD §6.1) — top-center, minimal over the immersive feed. */}

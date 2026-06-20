@@ -252,6 +252,39 @@ export const dmThreadDetailSchema = z.object({
   messages: z.array(dmMessageSchema),
 });
 
+/* ── Notifications / Activity (the push system's in-app surface) ───────────────
+   The companion to web-push: a durable inbox for the events we also notify on —
+   follows, likes, comments, tips received, battle results, and payout/earnings
+   updates. `actor` is the user who caused it (absent for system/earnings events),
+   and `href` is the in-app destination so a tap lands on the right surface. */
+export const notificationKindSchema = z.enum([
+  "follow",
+  "like",
+  "comment",
+  "tip",
+  "battle",
+  "earning",
+  "system",
+]);
+
+export const notificationSchema = z.object({
+  id: z.string(),
+  kind: notificationKindSchema,
+  /** Human-readable summary, e.g. "Ada started following you". */
+  text: z.string(),
+  createdAt: z.string(),
+  read: z.boolean(),
+  /** The user who triggered it; null for system/earning events. */
+  actor: dmParticipantSchema.nullable(),
+  /** In-app destination for a tap; null when there's nothing to open. */
+  href: z.string().nullable(),
+});
+
+export const notificationsPageSchema = z.object({
+  items: z.array(notificationSchema),
+  unread: z.number().int(),
+});
+
 /* ── Events (PRD §6.8 — real-world ↔ platform bridge) ──────────────────────────
    Campus shows, concerts, competitions, awards, festivals. Ticketing now;
    NFT tickets (provenance / anti-fraud / resale-royalty) are a later phase. */
@@ -566,6 +599,9 @@ export type DmParticipant = z.infer<typeof dmParticipantSchema>;
 export type DmMessage = z.infer<typeof dmMessageSchema>;
 export type DmThread = z.infer<typeof dmThreadSchema>;
 export type DmThreadDetail = z.infer<typeof dmThreadDetailSchema>;
+export type NotificationKind = z.infer<typeof notificationKindSchema>;
+export type Notification = z.infer<typeof notificationSchema>;
+export type NotificationsPage = z.infer<typeof notificationsPageSchema>;
 export type ModerationItem = z.infer<typeof moderationItemSchema>;
 export type ModerationAction = "approve" | "remove" | "ban" | "escalate";
 export type ModerationActionResult = z.infer<typeof moderationActionResultSchema>;
