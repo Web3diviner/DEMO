@@ -311,6 +311,22 @@ export const topUpStatusSchema = z.object({
   wallet: walletSchema.nullable(),
 });
 
+/* ── Creator verification ($1, PRD §7.3) ──────────────────────────────────────
+   Pay $1 (in naira) via Paystack, then the backend mints a SOULBOUND verified-
+   creator badge (gas-sponsored). The badge appears only once status = "verified"
+   — never on an on-chain read, and never optimistically on payment. */
+export const verifyIntentSchema = z.object({
+  reference: z.string(),
+  accessCode: z.string(),
+  price: moneySchema, // NGN (~$1)
+});
+
+export const verifyStatusSchema = z.object({
+  reference: z.string(),
+  /** pending (awaiting webhook) → minting (gas-sponsored SBT mint) → verified | failed. */
+  status: z.enum(["pending", "minting", "verified", "failed"]),
+});
+
 export const commentSchema = z.object({
   id: z.string(),
   author: z.object({
@@ -795,6 +811,8 @@ export type ClipAnalytics = z.infer<typeof clipAnalyticsSchema>;
 export type MyClip = z.infer<typeof myClipSchema>;
 export type CreditPack = z.infer<typeof creditPackSchema>;
 export type TopUpIntent = z.infer<typeof topUpIntentSchema>;
+export type VerifyIntent = z.infer<typeof verifyIntentSchema>;
+export type VerifyStatus = z.infer<typeof verifyStatusSchema>;
 export type TopUpStatus = z.infer<typeof topUpStatusSchema>;
 export type Comment = z.infer<typeof commentSchema>;
 export type CommentPage = z.infer<typeof commentPageSchema>;

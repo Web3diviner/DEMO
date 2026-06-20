@@ -28,3 +28,15 @@ test("verification page states the $1 price and badge-after-confirmation rule", 
   await expect(page.getByRole("button", { name: /verify for \$1/i })).toBeVisible();
   await expect(page.getByText(/badge appears once payment is confirmed/i)).toBeVisible();
 });
+
+test("paying $1 verifies the creator only after the mint confirms", async ({ page }) => {
+  await page.goto("/creator/register");
+  await page.getByRole("button", { name: /verify for \$1/i }).click();
+
+  // Server-truth: a pending/minting state, never an optimistic badge.
+  await expect(page.getByText(/confirming your payment|minting your badge/i)).toBeVisible();
+
+  // The badge appears only once the mint is confirmed.
+  await expect(page.getByText(/you're verified/i)).toBeVisible({ timeout: 15000 });
+  await expect(page.getByRole("link", { name: /go to your hub/i })).toBeVisible();
+});

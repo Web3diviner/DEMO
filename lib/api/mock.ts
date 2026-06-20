@@ -367,6 +367,8 @@ const CREDIT_PACKS = [
 // Pending top-ups, keyed by reference. The "webhook" confirms after a short delay — the client must
 // poll and only sees the balance move once status flips to success (never optimistically).
 const topUps = new Map<string, { credits: number; price: number; confirmAt: number }>();
+// Creator verification intents: payment-confirm then gas-sponsored mint timing.
+const verifyIntents = new Map<string, { paidAt: number; mintedAt: number }>();
 
 function commentsFor(clipId: string) {
   const authors = [
@@ -1335,6 +1337,28 @@ export async function handleMock(
 
   if (route === "/v1/credits/packs" && (opts.method ?? "GET") === "GET") {
     return CREDIT_PACKS;
+  }
+
+  if (route === "/v1/creators/register/intent" && opts.method === "POST") {
+    const reference = `vr_${Date.now().toString(36)}`;
+    // Webhook lands ~1.5s after checkout; the gas-sponsored mint completes ~1.5s after that.
+    verifyIntents.set(reference, { paidAt: Date.now() + 1500, mintedAt: Date.now() + 3000 });
+    return {
+      reference,
+      accessCode: `ac_mock_${reference}`,
+      price: { currency: "NGN" as const, minor: 160_000 }, // ~$1
+    };
+  }
+
+  if (/^\/v1\/creators\/register\/[^/]+\/status$/.test(route) && (opts.method ?? "GET") === "GET") {
+    const reference = route.split("/")[4];
+    const intent = verifyIntents.get(reference);
+    if (!intent) return { reference, status: "failed" as const };
+    const now = Date.now();
+    if (now < intent.paidAt) return { reference, status: "pending" as const };
+    if (now < intent.mintedAt) return { reference, status: "minting" as const };
+    verifyIntents.delete(reference);
+    return { reference, status: "verified" as const };
   }
 
   if (route === "/v1/credits/topup" && opts.method === "POST") {

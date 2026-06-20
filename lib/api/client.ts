@@ -22,6 +22,8 @@ import {
   creditPackSchema,
   topUpIntentSchema,
   topUpStatusSchema,
+  verifyIntentSchema,
+  verifyStatusSchema,
   commentPageSchema,
   battleSchema,
   voteResultSchema,
@@ -103,6 +105,8 @@ import {
   type ResolvedAccount,
   type CreditPack,
   type TopUpIntent,
+  type VerifyIntent,
+  type VerifyStatus,
   type TopUpStatus,
   type CommentPage,
   type Battle,
@@ -280,6 +284,23 @@ export const api = {
         method: "DELETE",
         idempotencyKey: `delete-clip:${id}`,
       });
+    },
+  },
+  creators: {
+    /** Create the $1 verification payment intent (Paystack). */
+    registerIntent(): Promise<VerifyIntent> {
+      return request(`/v1/creators/register/intent`, verifyIntentSchema, {
+        method: "POST",
+        idempotencyKey: `verify:${Date.now()}`,
+      });
+    },
+    /** Poll verification status; badge appears only once `verified` (mint confirmed). */
+    registerStatus(reference: string, signal?: AbortSignal): Promise<VerifyStatus> {
+      return request(
+        `/v1/creators/register/${encodeURIComponent(reference)}/status`,
+        verifyStatusSchema,
+        { signal },
+      );
     },
   },
   profiles: {

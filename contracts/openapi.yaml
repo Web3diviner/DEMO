@@ -521,6 +521,34 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/TopUpStatus" }
+  /v1/creators/register/intent:
+    post:
+      summary: Create the $1 creator-verification payment intent (Paystack) — PRD §7.3
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Payment intent
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VerifyIntent" }
+  /v1/creators/register/{reference}/status:
+    get:
+      summary: Verification status — badge appears only once the gas-sponsored mint is confirmed
+      parameters:
+        - name: reference
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Status (poll until verified/failed)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VerifyStatus" }
   /v1/clips/{clipId}/comments:
     get:
       summary: Comments for a clip (cursor-paginated)
@@ -1851,6 +1879,19 @@ components:
           oneOf:
             - { $ref: "#/components/schemas/Wallet" }
             - { type: "null" }
+    VerifyIntent:
+      type: object
+      required: [reference, accessCode, price]
+      properties:
+        reference: { type: string }
+        accessCode: { type: string }
+        price: { $ref: "#/components/schemas/Money" }
+    VerifyStatus:
+      type: object
+      required: [reference, status]
+      properties:
+        reference: { type: string }
+        status: { type: string, enum: [pending, minting, verified, failed] }
     Comment:
       type: object
       required: [id, author, body, createdAt, likeCount]
