@@ -36,7 +36,7 @@ export function SearchScreen() {
   });
 
   return (
-    <main id="main" className="mx-auto max-w-md px-4 pt-6 pb-28">
+    <main id="main" className="mx-auto max-w-full md:max-w-6xl px-4 pt-6 pb-28">
       {/* Search box */}
       <div className="border-line bg-surface focus-within:border-line-strong rounded-pill flex h-11 items-center gap-2 border px-4">
         <Search className="text-subtle h-4 w-4 shrink-0" aria-hidden />

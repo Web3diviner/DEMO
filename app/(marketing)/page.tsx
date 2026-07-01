@@ -26,7 +26,7 @@ export default function Landing() {
       <h1 className="sm:text-display max-w-xl text-3xl leading-tight font-semibold tracking-tight text-balance">
         Where campus talent gets discovered.
       </h1>
-      <p className="text-muted mt-4 max-w-md text-base text-balance">
+      <p className="text-muted mt-4 max-w-full md:max-w-6xl text-base text-balance">
         Watch, back, and battle the next generation of Nigerian talent. Built for your phone, light
         on your data.
       </p>

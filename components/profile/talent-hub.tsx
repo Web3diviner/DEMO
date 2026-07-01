@@ -106,7 +106,7 @@ export function TalentHub({ handle, editable = false }: { handle: string; editab
   const tier = talentScore >= 85 ? "Elite" : talentScore >= 70 ? "Established" : "Rising";
 
   return (
-    <div className="mx-auto max-w-md px-4 pt-6 pb-28">
+    <div className="mx-auto max-w-full md:max-w-6xl px-4 pt-6 pb-28">
       <header className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="bg-brand text-brand-fg grid h-16 w-16 place-items-center rounded-full text-2xl font-bold">

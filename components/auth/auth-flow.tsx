@@ -63,7 +63,7 @@ export function AuthFlow() {
   });
 
   return (
-    <main id="main" className="min-h-dscreen mx-auto flex max-w-md flex-col px-6 pt-10 pb-12">
+    <main id="main" className="min-h-dscreen mx-auto flex max-w-full md:max-w-6xl flex-col px-6 pt-10 pb-12">
       <div className="flex items-center gap-3">
         {phase !== "phone" && (
           <button

@@ -43,7 +43,7 @@ export function EventDetail({ id }: { id: string }) {
   const free = ev.price.minor === 0;
 
   return (
-    <main id="main" className="mx-auto max-w-md px-4 pt-4 pb-28">
+    <main id="main" className="mx-auto max-w-full md:max-w-6xl px-4 pt-4 pb-28">
       <div className="flex items-center gap-3">
         <Link href="/events" aria-label="Back to events" className="text-muted hover:text-fg">
           <ArrowLeft className="h-5 w-5" />

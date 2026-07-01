@@ -121,7 +121,7 @@ export function Uploader() {
   const pct = Math.round(state.progress * 100);
 
   return (
-    <div className="mx-auto max-w-md px-4 pt-6 pb-28">
+    <div className="mx-auto max-w-full md:max-w-6xl px-4 pt-6 pb-28">
       <h1 className="text-2xl font-semibold tracking-tight">New clip</h1>
       <p className="text-muted mt-1 text-sm">
         {policy.dataSaver

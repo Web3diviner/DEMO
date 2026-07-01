@@ -10,7 +10,9 @@ import { BottomNav } from "@/components/nav/bottom-nav";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dscreen relative">
-      <main id="main">{children}</main>
+      <div className="mx-auto w-full max-w-6xl px-3 sm:px-6 lg:px-8 xl:px-10">
+        <main id="main">{children}</main>
+      </div>
       <BottomNav />
     </div>
   );

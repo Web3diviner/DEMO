@@ -91,7 +91,7 @@ export function CreatorRegister() {
 
   if (alreadyVerified && phase !== "verified") {
     return (
-      <main id="main" className="mx-auto max-w-md px-4 pt-10 pb-28 text-center">
+      <main id="main" className="mx-auto max-w-full md:max-w-6xl px-4 pt-10 pb-28 text-center">
         <span className="bg-gold/15 text-gold mx-auto grid h-16 w-16 place-items-center rounded-2xl">
           <BadgeCheck className="h-8 w-8" aria-hidden />
         </span>
@@ -110,7 +110,7 @@ export function CreatorRegister() {
   }
 
   return (
-    <main id="main" className="mx-auto max-w-md px-4 pt-8 pb-28">
+    <main id="main" className="mx-auto max-w-full md:max-w-6xl px-4 pt-8 pb-28">
       <div className="bg-brand/15 text-gold grid h-14 w-14 place-items-center rounded-2xl">
         <ShieldCheck className="h-7 w-7" aria-hidden />
       </div>

@@ -131,7 +131,7 @@ export function PrivacyScreen() {
   const set = (patch: Partial<PrivacySettings>) => data && update.mutate({ ...data, ...patch });
 
   return (
-    <main id="main" className="mx-auto max-w-md px-4 pt-6 pb-28">
+    <main id="main" className="mx-auto max-w-full md:max-w-6xl px-4 pt-6 pb-28">
       <div className="flex items-center gap-3">
         <Link href="/settings" aria-label="Back to settings" className="text-muted hover:text-fg">
           <ArrowLeft className="h-5 w-5" />

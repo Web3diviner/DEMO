@@ -43,7 +43,7 @@ export function AmbassadorScreen() {
 
   if (status === "pending") {
     return (
-      <main id="main" className="mx-auto max-w-md px-4 pt-6 pb-28">
+      <main id="main" className="mx-auto max-w-full md:max-w-6xl px-4 pt-6 pb-28">
         <div className="bg-surface h-40 animate-pulse rounded-lg" />
       </main>
     );
@@ -56,7 +56,7 @@ export function AmbassadorScreen() {
   const progress = Math.min(100, Math.round((tier.activated / tier.nextAt) * 100));
 
   return (
-    <main id="main" className="mx-auto max-w-md px-4 pt-6 pb-28">
+    <main id="main" className="mx-auto max-w-full md:max-w-6xl px-4 pt-6 pb-28">
       <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
         <Megaphone className="text-brand h-6 w-6" aria-hidden /> Campus Ambassador
       </h1>

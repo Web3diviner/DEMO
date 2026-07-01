@@ -171,7 +171,7 @@ export function SettingsScreen() {
           : "Off — turn on to get notified";
 
   return (
-    <main id="main" className="mx-auto max-w-md px-4 pt-6 pb-28">
+    <main id="main" className="mx-auto max-w-full md:max-w-6xl px-4 pt-6 pb-28">
       <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
 
       <section className="mt-4">

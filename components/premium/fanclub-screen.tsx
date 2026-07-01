@@ -66,7 +66,7 @@ export function FanClubScreen({ handle }: { handle: string }) {
   const isMember = data.viewer.status === "active";
 
   return (
-    <main id="main" className="mx-auto max-w-md px-4 pt-4 pb-28">
+    <main id="main" className="mx-auto max-w-full md:max-w-6xl px-4 pt-4 pb-28">
       <div className="flex items-center gap-3">
         <Link href={`/u/${handle}`} aria-label="Back" className="text-muted hover:text-fg">
           <ArrowLeft className="h-5 w-5" />

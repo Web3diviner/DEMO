@@ -46,7 +46,7 @@ export function MarketScreen() {
   }
 
   return (
-    <main id="main" className="mx-auto max-w-md px-4 pt-6 pb-28">
+    <main id="main" className="mx-auto max-w-full md:max-w-6xl px-4 pt-6 pb-28">
       <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
         <Store className="text-brand h-6 w-6" aria-hidden /> Marketplace
       </h1>

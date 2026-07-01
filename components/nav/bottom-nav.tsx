@@ -24,10 +24,10 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="border-line bg-canvas/80 fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur-lg"
+      className="border-line bg-canvas/80 fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur-lg md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <ul className="mx-auto flex max-w-md items-center justify-around px-2">
+      <ul className="mx-auto flex max-w-6xl items-center justify-around px-2">
         {tabs.map(({ href, label, Icon }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (

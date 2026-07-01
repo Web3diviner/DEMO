@@ -58,7 +58,7 @@ export function DmThread({ id }: { id: string }) {
   };
 
   return (
-    <div className="h-dscreen mx-auto flex max-w-md flex-col">
+    <div className="h-dscreen mx-auto flex max-w-full md:max-w-6xl flex-col">
       {/* Header */}
       <header className="border-line flex items-center gap-3 border-b px-4 py-3">
         <Link href="/dms" aria-label="Back to messages" className="text-muted hover:text-fg">

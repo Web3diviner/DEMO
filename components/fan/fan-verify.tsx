@@ -84,7 +84,7 @@ export function FanVerify() {
 
   if (already && phase !== "verified") {
     return (
-      <main id="main" className="mx-auto max-w-md px-4 pt-10 pb-28 text-center">
+      <main id="main" className="mx-auto max-w-full md:max-w-6xl px-4 pt-10 pb-28 text-center">
         <span className="bg-brand/15 text-brand mx-auto grid h-16 w-16 place-items-center rounded-2xl">
           <BadgeCheck className="h-8 w-8" aria-hidden />
         </span>
@@ -101,7 +101,7 @@ export function FanVerify() {
   }
 
   return (
-    <main id="main" className="mx-auto max-w-md px-4 pt-8 pb-28">
+    <main id="main" className="mx-auto max-w-full md:max-w-6xl px-4 pt-8 pb-28">
       <div className="bg-brand/15 text-brand grid h-14 w-14 place-items-center rounded-2xl">
         <BadgeCheck className="h-7 w-7" aria-hidden />
       </div>
